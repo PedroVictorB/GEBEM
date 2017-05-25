@@ -46,7 +46,7 @@
                 </div>
             </div>
             <div class="main-login main-center" style="width: 50%;margin: auto">
-                <form class="form-horizontal" method="post" action="/GEBEM/v1/registration">
+                <form class="form-horizontal" method="post" action="/GEBEM/v1/form/registration">
 
                     <div class="form-group">
                         <label for="name" class="cols-sm-2 control-label">Your Name</label>

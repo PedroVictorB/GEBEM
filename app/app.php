@@ -4,6 +4,10 @@
  * @var \Phalcon\Mvc\Micro $app
  */
 
+include(__DIR__."/vendor/oauth2-server-php-develop/src/OAuth2/Autoloader.php");
+include (__DIR__."/vendor/guzzle/autoloader.php");
+OAuth2\Autoloader::register();
+
 /*
  * * * * * * * * * * * * * * * *
  * Common pages                *
@@ -24,7 +28,7 @@ $app->get('/', function () use ($app) {
  */
 $app->notFound(function () use ($app) {
     echo json_encode(
-        array("GEBEM_ERROR" =>
+        array("GEBEM_STATUS" =>
             array(
                 "code" => "400",
                 "reasonPhrase" => "Bad Request",
@@ -34,6 +38,7 @@ $app->notFound(function () use ($app) {
     );
 });
 
+
 /*
  * * * * * * * * * * * * * * * *
  * API v1                      *
@@ -41,9 +46,9 @@ $app->notFound(function () use ($app) {
 */
 
 /**
- * Registration route
+ * Registration route for initial page form
  */
-$app->post('/v1/registration', function () use ($app) {
+$app->post('/v1/form/registration', function () use ($app) {
     $user = new Usuario();
 
     $user->name = $app->request->getPost('name', 'string');
@@ -96,4 +101,143 @@ $app->post('/v1/registration', function () use ($app) {
         )
     );
     return;
+});
+
+/**
+ * Registration route for API
+ */
+$app->post('/v1/registration', function () use ($app) {
+    $user = new Usuario();
+
+    $user->name = $app->request->getPost('name', 'string');
+    $user->email = $app->request->getPost('email', 'email');
+    $user->username = $app->request->getPost('username', 'alphanum');
+    $user->password = $app->request->getPost('password', 'string');
+    $cpassword = $app->request->getPost('cpassword', 'string');
+
+    if(strlen($user->name) < 4 ||
+        strlen($user->username) < 4 ||
+        strlen($user->password) < 6){
+
+        echo json_encode(
+            array("GEBEM_STATUS" =>
+                array(
+                    "code" => "400",
+                    "reasonPhrase" => "Invalid attributes",
+                    "details" => "Name, username or password is invalid."
+                )
+            )
+        );
+        return;
+    }
+
+    if(strcmp($user->password, $cpassword) != 0){
+        echo json_encode(
+            array("GEBEM_STATUS" =>
+                array(
+                    "code" => "400",
+                    "reasonPhrase" => "Invalid attributes",
+                    "details" => "Password confirmation is wrong."
+                )
+            )
+        );
+        return;
+    }
+
+    $user->password = $this->security->hash($user->password);
+
+    if(!$user->save()){
+
+        $errorMessage = '';
+        foreach ($user->getMessages() as $message){
+            $errorMessage .= $message.' | ';
+        }
+
+        echo json_encode(
+            array("GEBEM_STATUS" =>
+                array(
+                    "code" => "400",
+                    "reasonPhrase" => "ERROR",
+                    "details" => 'Something went wrong. '.$errorMessage
+                )
+            )
+        );
+        return;
+    }
+
+    echo json_encode(
+        array("GEBEM_STATUS" =>
+            array(
+                "code" => "200",
+                "reasonPhrase" => "OK",
+                "details" => "User saved.You may use the API now :) .Use /token [POST] with the username and password to get a token to access the API."
+            )
+        )
+    );
+    return;
+});
+
+/**
+ * Token route
+ */
+$app->post('/v1/token', function () use ($app) {
+    // Handle a request for an OAuth2.0 Access Token and send the response to the client
+    $this->oauth2->handleTokenRequest(OAuth2\Request::createFromGlobals())->send();
+});
+
+/**
+ * Token refresh route
+ */
+$app->put('/v1/token', function () use ($app) {
+    // Handle a request for an OAuth2.0 Access Token and send the response to the client
+    $this->oauth2->handleTokenRequest(OAuth2\Request::createFromGlobals())->send();
+});
+
+/**
+ * Buildings route
+ * [GET] Get all the buildings
+ */
+$app->get('/v1/buildings', function () use ($app) {
+
+    $client = new GuzzleHttp\Client();
+    $res = $client->request('GET',
+        $this->config->GEBEM->ORION_CONFIGURATION->protocol.'://'
+        .$this->config->GEBEM->ORION_CONFIGURATION->url.':'
+        .$this->config->GEBEM->ORION_CONFIGURATION->port
+        .'/v1/contextEntityTypes/'
+        .$this->config->GEBEM->API_CONFIGURATION->buildingType
+    );
+
+    $buildings = json_decode($res->getBody());
+//    var_dump(explode(",", $_GET['teste']));
+//    die();
+    echo json_encode(
+        array(
+            "BUILDINGS" => array(
+
+            ),
+            "GEBEM_STATUS" =>
+                array(
+                    "code" => "200",
+                    "reasonPhrase" => "OK",
+                    "details" => "Buildings"
+                )
+        )
+    );
+});
+
+/**
+ * Buildings route
+ * [POST] Create a new building
+ */
+$app->post('/v1/buildings', function () use ($app) {
+    echo json_encode(
+        array("GEBEM_STATUS" =>
+            array(
+                "code" => "200",
+                "reasonPhrase" => "OK",
+                "details" => "Buildings"
+            )
+        )
+    );
 });

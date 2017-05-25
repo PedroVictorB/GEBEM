@@ -2,6 +2,8 @@
 
 use Phalcon\Di\FactoryDefault;
 use Phalcon\Mvc\Micro;
+use Phalcon\Events\Event;
+use Phalcon\Events\Manager as EventsManager;
 
 error_reporting(E_ALL);
 
@@ -32,10 +34,40 @@ try {
     include APP_PATH . '/config/loader.php';
 
     /**
+     * Create de EventsManager
+     */
+    $eventsManager = new EventsManager();
+
+    $eventsManager->attach(
+        "micro:beforeExecuteRoute",
+        function (Event $event, $app) {
+
+            //Acesso a / e /v1/token pode ser feito
+            if ($app['router']->getRewriteUri() == '/' ||
+                $app['router']->getRewriteUri() == '/v1/token') {
+                return true;
+            }
+
+            //Verifica o token OAuth2
+            if (!$app->oauth2->verifyResourceRequest(OAuth2\Request::createFromGlobals())) {
+                $app->oauth2->getResponse()->send();
+
+                return false;
+            }
+            return true;
+        }
+    );
+
+    /**
      * Starting the application
      * Assign service locator to the application
      */
     $app = new Micro($di);
+
+    /**
+     * Bind the events manager to the app
+     */
+    $app->setEventsManager($eventsManager);
 
     /**
      * Include Application

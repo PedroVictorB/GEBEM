@@ -81,3 +81,46 @@ $di->setShared('security', function () {
     return $security;
 });
 
+/**
+ * Router
+ */
+$di->set('router', function() {
+
+    $router = new Phalcon\Mvc\Router();
+
+    $router->add('/', array(
+        'controller' => 'estatisticas',
+        'action' => 'index'
+    ));
+
+    return $router;
+});
+
+/**
+ * OAuth2
+ */
+$di->setShared('oauth2', function () {
+    $config = $this->getConfig();
+
+    $storage = new OAuth2\Storage\Pdo(array(
+        'dsn' => $config->oauth2->dsn,
+        'username' => $config->oauth2->username,
+        'password' => $config->oauth2->password)
+    );
+
+    // Pass a storage object or array of storage objects to the OAuth2 server class
+    $server = new OAuth2\Server($storage);
+
+    // Add the "Client Credentials" grant type (it is the simplest of the grant types)
+    $server->addGrantType(new OAuth2\GrantType\ClientCredentials($storage));
+
+    // Add the "Authorization Code" grant type (this is where the oauth magic happens)
+    $server->addGrantType(new OAuth2\GrantType\AuthorizationCode($storage));
+
+    //Changed token lifetime
+    $server->setConfig("id_lifetime", $config->oauth2->token_lifetime);
+    $server->setConfig("access_lifetime", $config->oauth2->token_lifetime);
+
+    return $server;
+});
+
