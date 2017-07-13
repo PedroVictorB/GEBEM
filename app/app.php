@@ -7,6 +7,7 @@
 include(__DIR__."/vendor/oauth2-server-php-develop/src/OAuth2/Autoloader.php");
 include (__DIR__."/vendor/guzzle/autoloader.php");
 OAuth2\Autoloader::register();
+use GEBEM\Utilities\Util as Util;
 
 /*
  * * * * * * * * * * * * * * * *
@@ -200,22 +201,82 @@ $app->put('/v1/token', function () use ($app) {
 $app->get('/v1/buildings', function () use ($app) {
 
     $client = new GuzzleHttp\Client();
-    $res = $client->request('GET',
+
+    //?patternId=Room.*&offset=0&limit=100&details=on?orderBy=temperature,!humidity
+
+//    echo print_r($_GET, true);
+//    die();
+
+//    $params =   "?offset=".Util::getBestParamValue("offset", "0", $this->config->GEBEM->API_CONFIGURATION->params->toArray(), $_GET)
+//                ."&limit=".Util::getBestParamValue("offset", "100", $this->config->GEBEM->API_CONFIGURATION->params->toArray(), $_GET)
+//                ."&details=".Util::getBestParamValue("details", "off", $this->config->GEBEM->API_CONFIGURATION->params->toArray(), $_GET)
+//                ."&orderBy=".Util::getBestParamValue("orderBy", "", $this->config->GEBEM->API_CONFIGURATION->params->toArray(), $_GET);
+                    
+    $buildingsTypes = $this->config->GEBEM->API_CONFIGURATION->buildingTypes;
+    $entities = array();
+    for($i = 0;$i < count($buildingsTypes);$i++){
+        array_push($entities, array(
+            "type" => $buildingsTypes[$i],
+            "isPattern" => true,
+            "id" => ".*"//Util::getBestParamValue("patternId", ".*", $this->config->GEBEM->API_CONFIGURATION->params->toArray(), $_GET)
+        ));
+    }
+
+    $res = $client->post(
         $this->config->GEBEM->ORION_CONFIGURATION->protocol.'://'
         .$this->config->GEBEM->ORION_CONFIGURATION->url.':'
         .$this->config->GEBEM->ORION_CONFIGURATION->port
-        .'/v1/contextEntityTypes/'
-        .$this->config->GEBEM->API_CONFIGURATION->buildingType
+        .'/v1/queryContext'
+        , array(
+            'headers' => [
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json'
+            ],
+            "json" => [
+                'entities' => $entities
+            ]
+        )
+
     );
 
-    $buildings = json_decode($res->getBody());
-//    var_dump(explode(",", $_GET['teste']));
-//    die();
+    $buildings = json_decode($res->getBody())->contextResponses;
+
+    $tempBuildings = array();
+    foreach ($buildings as $building){
+        $tempAttribute = array();
+        if(!empty($building->contextElement->attributes)){
+            foreach ($building->contextElement->attributes as $attribute){
+                $tempMetadata = array();
+                if(!empty($attribute->metadatas)){
+                    foreach ($attribute->metadatas as $metadata){
+                        array_push($tempMetadata, array(
+                            "name" => $metadata->name,
+                            "type" => $metadata->type,
+                            "value" => $metadata->value
+                        ));
+                    }
+                }
+                array_push($tempAttribute, array(
+                    "name" => $attribute->name,
+                    "type" => $attribute->type,
+                    "value" => $attribute->value,
+                    "metadata" => $tempMetadata
+                ));
+            }
+        }
+        array_push($tempBuildings, array(
+            "id" => $building->contextElement->id,
+            "type" =>$building->contextElement->type,
+            "isPattern" => $building->contextElement->isPattern,
+            "attributes" => $tempAttribute
+        ));
+    }
+
     echo json_encode(
         array(
-            "BUILDINGS" => array(
-
-            ),
+            "GEBEM_BUILDINGS" =>
+                $tempBuildings
+            ,
             "GEBEM_STATUS" =>
                 array(
                     "code" => "200",
@@ -228,9 +289,9 @@ $app->get('/v1/buildings', function () use ($app) {
 
 /**
  * Buildings route
- * [POST] Create a new building
+ * [GET] Get one building based on it's ID
  */
-$app->post('/v1/buildings', function () use ($app) {
+$app->get('/v1/buildings/{id}', function () use ($app) {
     echo json_encode(
         array("GEBEM_STATUS" =>
             array(
