@@ -202,24 +202,26 @@ $app->get('/v1/buildings', function () use ($app) {
 
     $client = new GuzzleHttp\Client();
 
-    //?patternId=Room.*&offset=0&limit=100&details=on?orderBy=temperature,!humidity
+    $configParams = $this->config->GEBEM->API_CONFIGURATION->params->toArray();
 
-//    echo print_r($_GET, true);
-//    die();
+    $params =   "?offset=".Util::getBestParamValue("offset", "0", $configParams, $_GET)
+                ."&limit=".Util::getBestParamValue("offset", "100", $configParams, $_GET)
+                ."&details=".Util::getBestParamValue("details", "off", $configParams, $_GET)
+                ."&orderBy=".Util::getBestParamValue("orderBy", "", $configParams, $_GET);
 
-//    $params =   "?offset=".Util::getBestParamValue("offset", "0", $this->config->GEBEM->API_CONFIGURATION->params->toArray(), $_GET)
-//                ."&limit=".Util::getBestParamValue("offset", "100", $this->config->GEBEM->API_CONFIGURATION->params->toArray(), $_GET)
-//                ."&details=".Util::getBestParamValue("details", "off", $this->config->GEBEM->API_CONFIGURATION->params->toArray(), $_GET)
-//                ."&orderBy=".Util::getBestParamValue("orderBy", "", $this->config->GEBEM->API_CONFIGURATION->params->toArray(), $_GET);
-                    
     $buildingsTypes = $this->config->GEBEM->API_CONFIGURATION->buildingTypes;
     $entities = array();
     for($i = 0;$i < count($buildingsTypes);$i++){
         array_push($entities, array(
             "type" => $buildingsTypes[$i],
             "isPattern" => true,
-            "id" => ".*"//Util::getBestParamValue("patternId", ".*", $this->config->GEBEM->API_CONFIGURATION->params->toArray(), $_GET)
+            "id" => Util::getBestParamValue("patternId", ".*", $configParams, $_GET)
         ));
+    }
+
+    $attributes = array();
+    if(isset($_GET["attributes"])){
+        $attributes = explode(",", Util::getBestParamValue("attributes", "", $configParams, $_GET));
     }
 
     $res = $client->post(
@@ -227,17 +229,36 @@ $app->get('/v1/buildings', function () use ($app) {
         .$this->config->GEBEM->ORION_CONFIGURATION->url.':'
         .$this->config->GEBEM->ORION_CONFIGURATION->port
         .'/v1/queryContext'
+        .$params
         , array(
             'headers' => [
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json'
             ],
             "json" => [
-                'entities' => $entities
+                'entities' => $entities,
+                'attributes' => $attributes
             ]
         )
 
     );
+
+    $response = json_decode($res->getBody()->getContents());
+
+    $showDetails = Util::getBestParamValue("details", "on", $configParams, $_GET) == "on" ? true : false;
+
+    if(isset($response->errorCode) && $response->errorCode->code != 200){
+        echo json_encode(
+            array("GEBEM_STATUS" =>
+                array(
+                    "code" => $response->errorCode->code,
+                    "reasonPhrase" => $response->errorCode->reasonPhrase,
+                    "details" => $showDetails ? $response->errorCode->details : ""
+                )
+            )
+        );
+        return;
+    }
 
     $buildings = json_decode($res->getBody())->contextResponses;
 
@@ -281,7 +302,7 @@ $app->get('/v1/buildings', function () use ($app) {
                 array(
                     "code" => "200",
                     "reasonPhrase" => "OK",
-                    "details" => "Buildings"
+                    "details" => $showDetails ? $response->errorCode->details : ""
                 )
         )
     );
