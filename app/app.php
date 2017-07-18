@@ -204,6 +204,8 @@ $app->get('/v1/buildings', function () use ($app) {
 
     $configParams = $this->config->GEBEM->API_CONFIGURATION->params->toArray();
 
+    $showDetails = Util::getBestParamValue("details", "on", $configParams, $_GET) == "on" ? true : false;
+
     $params =   "?offset=".Util::getBestParamValue("offset", "0", $configParams, $_GET)
                 ."&limit=".Util::getBestParamValue("offset", "100", $configParams, $_GET)
                 ."&details=".Util::getBestParamValue("details", "off", $configParams, $_GET)
@@ -224,28 +226,92 @@ $app->get('/v1/buildings', function () use ($app) {
         $attributes = explode(",", Util::getBestParamValue("attributes", "", $configParams, $_GET));
     }
 
-    $res = $client->post(
-        $this->config->GEBEM->ORION_CONFIGURATION->protocol.'://'
-        .$this->config->GEBEM->ORION_CONFIGURATION->url.':'
-        .$this->config->GEBEM->ORION_CONFIGURATION->port
-        .'/v1/queryContext'
-        .$params
-        , array(
-            'headers' => [
-                'Content-Type' => 'application/json',
-                'Accept' => 'application/json'
-            ],
-            "json" => [
-                'entities' => $entities,
-                'attributes' => $attributes
-            ]
-        )
+    $token = '';
+    if($this->config->GEBEM->ORION_CONFIGURATION->isProtected){
+        $configToken = $this->config->GEBEM->IDM_CONFIGURATION->toArray();
+        $resToken = $client->post(
+            $this->config->GEBEM->IDM_CONFIGURATION->protocol.'://'
+            .$this->config->GEBEM->IDM_CONFIGURATION->url.':'
+            .$this->config->GEBEM->IDM_CONFIGURATION->port
+            .'/v3/auth/tokens'
+            , array(
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json'
+                ],
+                "json" => [
+                    'auth' => array(
+                        'identity' => array(
+                            'methods' => array(
+                                'password'
+                            ),
+                            'password' => array(
+                                'user' => array(
+                                    'name' => Util::getBestParamValue("username", "idm", $configToken, array()),
+                                    'domain' => array(
+                                        'name' => 'Default'
+                                    ),
+                                    'password' => Util::getBestParamValue("password", "idm", $configToken, array())
+                                )
+                            )
+                        )
+                    )
+                ]
+            )
 
-    );
+        );
+
+        if(empty($resToken->getHeader('X-Subject-Token')) || $resToken->getStatusCode() !== 201){
+            echo json_encode(
+                array("GEBEM_STATUS" =>
+                    array(
+                        "code" => $resToken->getStatusCode(),
+                        "reasonPhrase" => $resToken->getReasonPhrase(),
+                        "details" => "Error getting token from keystone"
+                    )
+                )
+            );
+            return;
+        }
+
+        $token = $resToken->getHeader('X-Subject-Token')[0];
+    }
+
+    try{
+        $res = $client->post(
+            $this->config->GEBEM->ORION_CONFIGURATION->protocol.'://'
+            .$this->config->GEBEM->ORION_CONFIGURATION->url.':'
+            .$this->config->GEBEM->ORION_CONFIGURATION->port
+            .'/v1/queryContext'
+            .$params
+            , array(
+                //'http_errors' => false,
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json',
+                    'X-Auth-Token' => $token
+                ],
+                "json" => [
+                    'entities' => $entities,
+                    'attributes' => $attributes
+                ]
+            )
+
+        );
+    }catch (GuzzleHttp\Exception\RequestException $e){
+        echo json_encode(
+            array("GEBEM_STATUS" =>
+                array(
+                    "code" => $e->getResponse()->getStatusCode(),
+                    "reasonPhrase" => $e->getResponse()->getReasonPhrase(),
+                    "details" => "Error while communicating to ORION (Contact admin)"
+                )
+            )
+        );
+        return;
+    }
 
     $response = json_decode($res->getBody()->getContents());
-
-    $showDetails = Util::getBestParamValue("details", "on", $configParams, $_GET) == "on" ? true : false;
 
     if(isset($response->errorCode) && $response->errorCode->code != 200){
         echo json_encode(
@@ -253,7 +319,7 @@ $app->get('/v1/buildings', function () use ($app) {
                 array(
                     "code" => $response->errorCode->code,
                     "reasonPhrase" => $response->errorCode->reasonPhrase,
-                    "details" => $showDetails ? $response->errorCode->details : ""
+                    "details" => $response->errorCode->details
                 )
             )
         );
