@@ -1,8 +1,5 @@
 <?php
-/*
- * Modified: preppend directory path of current file, because of this file own different ENV under between Apache and command line.
- * NOTE: please remove this comment.
- */
+
 defined('BASE_PATH') || define('BASE_PATH', getenv('BASE_PATH') ?: realpath(dirname(__FILE__) . '/../..'));
 defined('APP_PATH') || define('APP_PATH', BASE_PATH . '/app');
 
@@ -21,6 +18,54 @@ return new \Phalcon\Config([
         'migrationsDir'  => APP_PATH . '/migrations/',
         'cacheDir'       => APP_PATH . '/cache/',
         'viewsDir'       => APP_PATH . '/views/',
+        'vendorDir'      => APP_PATH . '/vendor/',
+        'utilDir'        => APP_PATH . '/utilities/',
         'baseUri'        => '/GEBEM/',
+    ],
+
+    'oauth2' => [
+        'dsn'              => 'mysql:dbname=gebem_oauth2;host=localhost',
+        'username'         => 'root',
+        'password'         => 'admin',
+        'token_lifetime'   => '30000',
+    ],
+
+    'GEBEM' => [
+        'API_CONFIGURATION' => [
+            'buildingTypes'     => [
+                0 => "Predio",
+            ],
+            'roomTypes'         => [
+                0 => "Sala",
+            ],
+            'sensorTypes'       => [
+                0 => "Sensor_de_Presença",
+            ],
+            'modulesTypes'      => [
+                0 => "Ar_Condicionado",
+            ],
+            'params'            => [
+                "offset"     => "0",
+                "limit"      => "100",
+                "details"    => "on",
+                "orderBy"    => "",//Ex: temp,lum,desc
+                "patternId"  => ".*",
+                "attributes" => "",//Ex: temp,hum,desc
+                "q"          => ""
+            ]
+        ],
+        'ORION_CONFIGURATION' => [
+            'protocol'        => 'http',
+            'url'             => 'localhost',
+            'port'            => '80',
+            'isProtected'     => false//If this config is true IDM_CONFIGURATION must be filled
+        ],
+        'IDM_CONFIGURATION' => [
+            'protocol'   => 'http',
+            'url'        => 'localhost',
+            'port'       => '5000',
+            'username'   => 'test@test.com',//User with access to orion
+            'password'   => 'test'
+        ]
     ]
 ]);
