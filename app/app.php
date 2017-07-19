@@ -364,14 +364,164 @@ $app->get('/v1/buildings', function () use ($app) {
  * Buildings route
  * [GET] Get one building based on it's ID
  */
-$app->get('/v1/buildings/{id}', function () use ($app) {
-    echo json_encode(
-        array("GEBEM_STATUS" =>
-            array(
-                "code" => "200",
-                "reasonPhrase" => "OK",
-                "details" => "Buildings"
+$app->get('/v1/buildings/{id}', function ($id) use ($app) {
+
+    $client = new GuzzleHttp\Client();
+
+    $configParams = $this->config->GEBEM->API_CONFIGURATION->params->toArray();
+
+    $showDetails = Util::getBestParamValue("details", "on", $configParams, $_GET) == "on" ? true : false;
+
+    $params =   "?offset=".Util::getBestParamValue("offset", "0", $configParams, $_GET)
+        ."&limit=".Util::getBestParamValue("offset", "100", $configParams, $_GET)
+        ."&details=".Util::getBestParamValue("details", "off", $configParams, $_GET)
+        ."&orderBy=".Util::getBestParamValue("orderBy", "", $configParams, $_GET);
+
+    $buildingsTypes = $this->config->GEBEM->API_CONFIGURATION->buildingTypes;
+    $entities = array();
+    for($i = 0;$i < count($buildingsTypes);$i++){
+        array_push($entities, array(
+            "type" => $buildingsTypes[$i],
+            "isPattern" => false,
+            "id" => $id
+        ));
+    }
+
+    $attributes = array();
+    if(isset($_GET["attributes"])){
+        $attributes = explode(",", Util::getBestParamValue("attributes", "", $configParams, $_GET));
+    }
+
+    $token = '';
+    if($this->config->GEBEM->ORION_CONFIGURATION->isProtected){
+        $configToken = $this->config->GEBEM->IDM_CONFIGURATION->toArray();
+        $resToken = Util::getKeystoneToken($configToken);
+
+        if(empty($resToken->getHeader('X-Subject-Token')) || $resToken->getStatusCode() !== 201){
+            echo json_encode(
+                array("GEBEM_STATUS" =>
+                    array(
+                        "code" => $resToken->getStatusCode(),
+                        "reasonPhrase" => $resToken->getReasonPhrase(),
+                        "details" => "Error getting token from keystone"
+                    )
+                )
+            );
+            return;
+        }
+
+        $token = $resToken->getHeader('X-Subject-Token')[0];
+    }
+
+    $q = Util::getBestParamValue("q", "", $configParams, $_GET);
+
+    try{
+        if(empty($q)){
+            $load = array(
+                'entities' => $entities,
+                'attributes' => $attributes
+            );
+        }else{
+            $load = array(
+                'entities' => $entities,
+                'attributes' => $attributes,
+                'restriction' => [
+                    'scopes' => [[
+                        'type' => "FIWARE::StringQuery",
+                        'value' => $q
+                    ]]
+                ]
+            );
+        }
+
+        $res = $client->post(
+            $this->config->GEBEM->ORION_CONFIGURATION->protocol.'://'
+            .$this->config->GEBEM->ORION_CONFIGURATION->url.':'
+            .$this->config->GEBEM->ORION_CONFIGURATION->port
+            .'/v1/queryContext'
+            .$params
+            , array(
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json',
+                    'X-Auth-Token' => $token
+                ],
+                "json" => $load
             )
+
+        );
+    }catch (GuzzleHttp\Exception\RequestException $e){
+        echo json_encode(
+            array("GEBEM_STATUS" =>
+                array(
+                    "code" => $e->getResponse()->getStatusCode(),
+                    "reasonPhrase" => $e->getResponse()->getReasonPhrase(),
+                    "details" => "Error while communicating to ORION (Contact admin)"
+                )
+            )
+        );
+        return;
+    }
+
+    $response = json_decode($res->getBody()->getContents());
+
+    if(isset($response->errorCode) && $response->errorCode->code != 200){
+        echo json_encode(
+            array("GEBEM_STATUS" =>
+                array(
+                    "code" => $response->errorCode->code,
+                    "reasonPhrase" => $response->errorCode->reasonPhrase,
+                    "details" => isset($response->errorCode->details) ? $response->errorCode->details : "Error"
+                )
+            )
+        );
+        return;
+    }
+
+    $buildings = json_decode($res->getBody())->contextResponses;
+
+    $tempBuildings = array();
+    foreach ($buildings as $building){
+        $tempAttribute = array();
+        if(!empty($building->contextElement->attributes)){
+            foreach ($building->contextElement->attributes as $attribute){
+                $tempMetadata = array();
+                if(!empty($attribute->metadatas)){
+                    foreach ($attribute->metadatas as $metadata){
+                        array_push($tempMetadata, array(
+                            "name" => $metadata->name,
+                            "type" => $metadata->type,
+                            "value" => $metadata->value
+                        ));
+                    }
+                }
+                array_push($tempAttribute, array(
+                    "name" => $attribute->name,
+                    "type" => $attribute->type,
+                    "value" => $attribute->value,
+                    "metadata" => $tempMetadata
+                ));
+            }
+        }
+        array_push($tempBuildings, array(
+            "id" => $building->contextElement->id,
+            "type" =>$building->contextElement->type,
+            "isPattern" => $building->contextElement->isPattern,
+            "attributes" => $tempAttribute
+        ));
+    }
+
+    echo json_encode(
+        array(
+            "GEBEM_BUILDINGS" =>
+                $tempBuildings
+        ,
+            "GEBEM_STATUS" =>
+                array(
+                    "code" => "200",
+                    "reasonPhrase" => "OK",
+                    "details" => $showDetails ? $response->errorCode->details : ""
+                )
         )
     );
 });

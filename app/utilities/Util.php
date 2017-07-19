@@ -35,6 +35,10 @@ class Util
         }
     }
 
+    /**
+     * @param array $configToken
+     * @return \Psr\Http\Message\ResponseInterface
+     */
     public static function getKeystoneToken(array $configToken){
         $client = new \GuzzleHttp\Client();
 
