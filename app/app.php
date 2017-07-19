@@ -229,37 +229,7 @@ $app->get('/v1/buildings', function () use ($app) {
     $token = '';
     if($this->config->GEBEM->ORION_CONFIGURATION->isProtected){
         $configToken = $this->config->GEBEM->IDM_CONFIGURATION->toArray();
-        $resToken = $client->post(
-            $this->config->GEBEM->IDM_CONFIGURATION->protocol.'://'
-            .$this->config->GEBEM->IDM_CONFIGURATION->url.':'
-            .$this->config->GEBEM->IDM_CONFIGURATION->port
-            .'/v3/auth/tokens'
-            , array(
-                'headers' => [
-                    'Content-Type' => 'application/json',
-                    'Accept' => 'application/json'
-                ],
-                "json" => [
-                    'auth' => array(
-                        'identity' => array(
-                            'methods' => array(
-                                'password'
-                            ),
-                            'password' => array(
-                                'user' => array(
-                                    'name' => Util::getBestParamValue("username", "idm", $configToken, array()),
-                                    'domain' => array(
-                                        'name' => 'Default'
-                                    ),
-                                    'password' => Util::getBestParamValue("password", "idm", $configToken, array())
-                                )
-                            )
-                        )
-                    )
-                ]
-            )
-
-        );
+        $resToken = Util::getKeystoneToken($configToken);
 
         if(empty($resToken->getHeader('X-Subject-Token')) || $resToken->getStatusCode() !== 201){
             echo json_encode(
@@ -277,7 +247,27 @@ $app->get('/v1/buildings', function () use ($app) {
         $token = $resToken->getHeader('X-Subject-Token')[0];
     }
 
+    $q = Util::getBestParamValue("q", "", $configParams, $_GET);
+
     try{
+        if(empty($q)){
+            $load = array(
+                'entities' => $entities,
+                'attributes' => $attributes
+            );
+        }else{
+            $load = array(
+                'entities' => $entities,
+                'attributes' => $attributes,
+                'restriction' => [
+                    'scopes' => [[
+                        'type' => "FIWARE::StringQuery",
+                        'value' => $q
+                    ]]
+                ]
+            );
+        }
+
         $res = $client->post(
             $this->config->GEBEM->ORION_CONFIGURATION->protocol.'://'
             .$this->config->GEBEM->ORION_CONFIGURATION->url.':'
@@ -285,16 +275,12 @@ $app->get('/v1/buildings', function () use ($app) {
             .'/v1/queryContext'
             .$params
             , array(
-                //'http_errors' => false,
                 'headers' => [
                     'Content-Type' => 'application/json',
                     'Accept' => 'application/json',
                     'X-Auth-Token' => $token
                 ],
-                "json" => [
-                    'entities' => $entities,
-                    'attributes' => $attributes
-                ]
+                "json" => $load
             )
 
         );
@@ -319,7 +305,7 @@ $app->get('/v1/buildings', function () use ($app) {
                 array(
                     "code" => $response->errorCode->code,
                     "reasonPhrase" => $response->errorCode->reasonPhrase,
-                    "details" => $response->errorCode->details
+                    "details" => isset($response->errorCode->details) ? $response->errorCode->details : "Error"
                 )
             )
         );

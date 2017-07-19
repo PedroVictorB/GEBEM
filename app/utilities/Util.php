@@ -35,4 +35,41 @@ class Util
         }
     }
 
+    public static function getKeystoneToken(array $configToken){
+        $client = new \GuzzleHttp\Client();
+
+        $resToken = $client->post(
+            $configToken['protocol'].'://'
+            .$configToken['url'].':'
+            .$configToken['port']
+            .'/v3/auth/tokens'
+            , array(
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json'
+                ],
+                "json" => [
+                    'auth' => [
+                        'identity' => [
+                            'methods' => [
+                                'password'
+                            ],
+                            'password' => [
+                                'user' => [
+                                    'name' => self::getBestParamValue("username", "idm", $configToken, array()),
+                                    'domain' => [
+                                        'name' => 'Default'
+                                    ],
+                                    'password' => self::getBestParamValue("password", "idm", $configToken, array())
+                                ]
+                            ]
+                        ]
+                    ]
+                ]
+            )
+        );
+
+        return $resToken;
+    }
+
 }
