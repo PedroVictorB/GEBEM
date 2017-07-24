@@ -531,7 +531,249 @@ $app->get('/v1/buildings/{id_b}', function ($id_b) use ($app) {
  * [GET] Get all sensors of a building
  */
 $app->get('/v1/buildings/{id_b}/sensors', function ($id_b) use ($app) {
+    $client = new GuzzleHttp\Client();
 
+    $configParams = $this->config->GEBEM->API_CONFIGURATION->params->toArray();
+
+    $showDetails = Util::getBestParamValue("details", "on", $configParams, $_GET) == "on" ? true : false;
+
+    $params =   "?offset=".Util::getBestParamValue("offset", "0", $configParams, $_GET)
+        ."&limit=".Util::getBestParamValue("offset", "100", $configParams, $_GET)
+        ."&details=".Util::getBestParamValue("details", "off", $configParams, $_GET)
+        ."&orderBy=".Util::getBestParamValue("orderBy", "", $configParams, $_GET);
+
+    $roomTypes = $this->config->GEBEM->API_CONFIGURATION->roomTypes;
+    $entities = array();
+    for($i = 0;$i < count($roomTypes);$i++){
+        array_push($entities, array(
+            "type" => $roomTypes[$i],
+            "isPattern" => true,
+            "id" => ".*"
+        ));
+    }
+
+    $attributes = array();
+    if(isset($_GET["attributes"])){
+        $attributes = explode(",", Util::getBestParamValue("attributes", "", $configParams, $_GET));
+    }
+
+    $token = '';
+    if($this->config->GEBEM->ORION_CONFIGURATION->isProtected){
+        $configToken = $this->config->GEBEM->IDM_CONFIGURATION->toArray();
+        $resToken = Util::getKeystoneToken($configToken);
+
+        if(empty($resToken->getHeader('X-Subject-Token')) || $resToken->getStatusCode() !== 201){
+            echo json_encode(
+                array("GEBEM_STATUS" =>
+                    array(
+                        "code" => $resToken->getStatusCode(),
+                        "reasonPhrase" => $resToken->getReasonPhrase(),
+                        "details" => "Error getting token from keystone"
+                    )
+                )
+            );
+            return;
+        }
+
+        $token = $resToken->getHeader('X-Subject-Token')[0];
+    }
+
+    $q = Util::getBestParamValue("q", "", $configParams, $_GET);
+
+    try{
+        $load = array(
+            'entities' => $entities,
+            'attributes' => array(),
+            'restriction' => [
+                'scopes' => [[
+                    'type' => "FIWARE::StringQuery",
+                    'value' => $this->config->GEBEM->API_CONFIGURATION->attributes_names->rooms."=='".$id_b."'"
+                ]]
+            ]
+        );
+
+        $res = $client->post(
+            $this->config->GEBEM->ORION_CONFIGURATION->protocol.'://'
+            .$this->config->GEBEM->ORION_CONFIGURATION->url.':'
+            .$this->config->GEBEM->ORION_CONFIGURATION->port
+            .'/v1/queryContext'
+            .$params
+            , array(
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json',
+                    'X-Auth-Token' => $token
+                ],
+                "json" => $load
+            )
+
+        );
+    }catch (GuzzleHttp\Exception\RequestException $e){
+        echo json_encode(
+            array("GEBEM_STATUS" =>
+                array(
+                    "code" => $e->getResponse()->getStatusCode(),
+                    "reasonPhrase" => $e->getResponse()->getReasonPhrase(),
+                    "details" => "Error while communicating to ORION (Contact admin)"
+                )
+            )
+        );
+        return;
+    }
+
+    $response = json_decode($res->getBody()->getContents());
+
+    if(isset($response->errorCode) && $response->errorCode->code != 200){
+        echo json_encode(
+            array("GEBEM_STATUS" =>
+                array(
+                    "code" => $response->errorCode->code,
+                    "reasonPhrase" => $response->errorCode->reasonPhrase,
+                    "details" => isset($response->errorCode->details) ? $response->errorCode->details : "Error"
+                )
+            )
+        );
+        return;
+    }
+
+    $rooms = json_decode($res->getBody())->contextResponses;
+
+    $sensorQuery = $this->config->GEBEM->API_CONFIGURATION->attributes_names->sensors."==";
+    $count = 0;
+    foreach ($rooms as $room){
+        if($count == 0){
+            $sensorQuery .= "'".$room->contextElement->id."'";
+        }else{
+            $sensorQuery .= ",'".$room->contextElement->id."'";
+        }
+        $count++;
+    }
+
+    $sensorTypes = $this->config->GEBEM->API_CONFIGURATION->sensorTypes;
+    $entities = array();
+    for($i = 0;$i < count($sensorTypes);$i++){
+        array_push($entities, array(
+            "type" => $sensorTypes[$i],
+            "isPattern" => true,
+            "id" => ".*"
+        ));
+    }
+
+    try{
+        if(empty($q)){
+            $load = array(
+                'entities' => $entities,
+                'attributes' => $attributes,
+                'restriction' => [
+                    'scopes' => [[
+                        'type' => "FIWARE::StringQuery",
+                        'value' => $sensorQuery
+                    ]]
+                ]
+            );
+        }else{
+            $load = array(
+                'entities' => $entities,
+                'attributes' => $attributes,
+                'restriction' => [
+                    'scopes' => [[
+                        'type' => "FIWARE::StringQuery",
+                        'value' => $q.";".$sensorQuery
+                    ]]
+                ]
+            );
+        }
+
+        $res = $client->post(
+            $this->config->GEBEM->ORION_CONFIGURATION->protocol.'://'
+            .$this->config->GEBEM->ORION_CONFIGURATION->url.':'
+            .$this->config->GEBEM->ORION_CONFIGURATION->port
+            .'/v1/queryContext'
+            .$params
+            , array(
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                    'Accept' => 'application/json',
+                    'X-Auth-Token' => $token
+                ],
+                "json" => $load
+            )
+
+        );
+    }catch (GuzzleHttp\Exception\RequestException $e){
+        echo json_encode(
+            array("GEBEM_STATUS" =>
+                array(
+                    "code" => $e->getResponse()->getStatusCode(),
+                    "reasonPhrase" => $e->getResponse()->getReasonPhrase(),
+                    "details" => "Error while communicating to ORION (Contact admin)"
+                )
+            )
+        );
+        return;
+    }
+
+    $response = json_decode($res->getBody()->getContents());
+
+    if(isset($response->errorCode) && $response->errorCode->code != 200){
+        echo json_encode(
+            array("GEBEM_STATUS" =>
+                array(
+                    "code" => $response->errorCode->code,
+                    "reasonPhrase" => $response->errorCode->reasonPhrase,
+                    "details" => isset($response->errorCode->details) ? $response->errorCode->details : "Error"
+                )
+            )
+        );
+        return;
+    }
+
+    $sensors = json_decode($res->getBody())->contextResponses;
+
+    $tempSensors = array();
+    foreach ($sensors as $sensor){
+        $tempAttribute = array();
+        if(!empty($sensor->contextElement->attributes)){
+            foreach ($sensor->contextElement->attributes as $attribute){
+                $tempMetadata = array();
+                if(!empty($attribute->metadatas)){
+                    foreach ($attribute->metadatas as $metadata){
+                        array_push($tempMetadata, array(
+                            "name" => $metadata->name,
+                            "type" => $metadata->type,
+                            "value" => $metadata->value
+                        ));
+                    }
+                }
+                array_push($tempAttribute, array(
+                    "name" => $attribute->name,
+                    "type" => $attribute->type,
+                    "value" => $attribute->value,
+                    "metadata" => $tempMetadata
+                ));
+            }
+        }
+        array_push($tempBuildings, array(
+            "id" => $sensor->contextElement->id,
+            "type" =>$sensor->contextElement->type,
+            "isPattern" => $sensor->contextElement->isPattern,
+            "attributes" => $tempAttribute
+        ));
+    }
+
+    echo json_encode(
+        array(
+            "GEBEM_BUILDINGS" =>
+                $tempSensors
+        ,
+            "GEBEM_STATUS" =>
+                array(
+                    "code" => "200",
+                    "reasonPhrase" => "OK",
+                    "details" => $showDetails ? $response->errorCode->details : ""
+                )
+        )
+    );
 });
 
 /**
