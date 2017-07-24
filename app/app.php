@@ -364,7 +364,7 @@ $app->get('/v1/buildings', function () use ($app) {
  * Buildings route
  * [GET] Get one building based on it's ID
  */
-$app->get('/v1/buildings/{id}', function ($id) use ($app) {
+$app->get('/v1/buildings/{id_b}', function ($id_b) use ($app) {
 
     $client = new GuzzleHttp\Client();
 
@@ -383,7 +383,7 @@ $app->get('/v1/buildings/{id}', function ($id) use ($app) {
         array_push($entities, array(
             "type" => $buildingsTypes[$i],
             "isPattern" => false,
-            "id" => $id
+            "id" => $id_b
         ));
     }
 
@@ -524,4 +524,164 @@ $app->get('/v1/buildings/{id}', function ($id) use ($app) {
                 )
         )
     );
+});
+
+/**
+ * Buildings route
+ * [GET] Get all sensors of a building
+ */
+$app->get('/v1/buildings/{id_b}/sensors', function ($id_b) use ($app) {
+
+});
+
+/**
+ * Buildings route
+ * [GET] Get one sensor of a building based on its ID
+ */
+$app->get('/v1/buildings/{id_b}/sensors/{id_s}', function ($id, $id_s) use ($app) {
+
+});
+
+/**
+ * Buildings route
+ * [GET] Get all modules of a building
+ */
+$app->get('/v1/buildings/{id_b}/modules', function ($id_b) use ($app) {
+
+});
+
+/**
+ * Buildings route
+ * [GET] Get one module of a building based on its ID
+ */
+$app->get('/v1/buildings/{id_b}/modules/{id_m}', function ($id, $id_m) use ($app) {
+
+});
+
+/**
+ * Buildings route
+ * [GET] Get all rooms of a building
+ */
+$app->get('/v1/buildings/{id_b}/rooms', function ($id_b) use ($app) {
+
+});
+
+/**
+ * Buildings route
+ * [GET] Get one room of a building based on its ID
+ */
+$app->get('/v1/buildings/{id_b}/rooms/{id_r}', function ($id_b, $id_r) use ($app) {
+
+});
+
+/**
+ * Buildings route
+ * [GET] Get all sensors in one room of a building
+ */
+$app->get('/v1/buildings/{id_b}/rooms/{id_r}/sensors', function ($id_b, $id_r) use ($app) {
+
+});
+
+/**
+ * Buildings route
+ * [GET] Get one sensors in one room of a building based on its ID
+ */
+$app->get('/v1/buildings/{id_b}/rooms/{id_r}/sensors/{id_s}', function ($id_b, $id_r, $id_s) use ($app) {
+
+});
+
+/**
+ * Buildings route
+ * [GET] Get all modules in one room of a building
+ */
+$app->get('/v1/buildings/{id_b}/rooms/{id_r}/modules', function ($id_b, $id_r) use ($app) {
+
+});
+
+/**
+ * Buildings route
+ * [GET] Get one modules in one room of a building based on its ID
+ */
+$app->get('/v1/buildings/{id_b}/rooms/{id_r}/modules/{id_m}', function ($id_b, $id_r, $id_m) use ($app) {
+
+});
+
+/**
+ * Rooms route
+ * [GET] Get all rooms
+ */
+$app->get('/v1/rooms', function () use ($app) {
+
+});
+
+/**
+ * Rooms route
+ * [GET] Get one room based on its ID
+ */
+$app->get('/v1/rooms/{id_r}', function ($id_r) use ($app) {
+
+});
+
+/**
+ * Rooms route
+ * [GET] Get all sensors of one room
+ */
+$app->get('/v1/rooms/{id_r}/sensors', function ($id_r) use ($app) {
+
+});
+
+/**
+ * Rooms route
+ * [GET] Get one sensor of one room based on its ID
+ */
+$app->get('/v1/rooms/{id_r}/sensors/{id_s}', function ($id_r, $id_s) use ($app) {
+
+});
+
+/**
+ * Rooms route
+ * [GET] Get all modules of a room
+ */
+$app->get('/v1/rooms/{id_r}/modules', function ($id_r) use ($app) {
+
+});
+
+/**
+ * Rooms route
+ * [GET] Get one module of a room based on its ID
+ */
+$app->get('/v1/rooms/{id_r}/modules/{id_m}', function ($id_r, $id_m) use ($app) {
+
+});
+
+/**
+ * Sensors route
+ * [GET] Get all sensors
+ */
+$app->get('/v1/sensors', function () use ($app) {
+
+});
+
+/**
+ * Sensors route
+ * [GET] Get all rooms
+ */
+$app->get('/v1/sensors/{id_s}', function ($id_s) use ($app) {
+
+});
+
+/**
+ * Modules route
+ * [GET] Get all modules
+ */
+$app->get('/v1/modules/', function () use ($app) {
+
+});
+
+/**
+ * Modules route
+ * [GET] Get one module based on its ID
+ */
+$app->get('/v1/modules/{id_m}', function ($id_m) use ($app) {
+
 });
