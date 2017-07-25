@@ -1,5 +1,8 @@
 <?php
-
+/*
+ * Modified: preppend directory path of current file, because of this file own different ENV under between Apache and command line.
+ * NOTE: please remove this comment.
+ */
 defined('BASE_PATH') || define('BASE_PATH', getenv('BASE_PATH') ?: realpath(dirname(__FILE__) . '/../..'));
 defined('APP_PATH') || define('APP_PATH', BASE_PATH . '/app');
 
@@ -51,7 +54,13 @@ return new \Phalcon\Config([
                 "orderBy"    => "",//Ex: temp,lum,desc
                 "patternId"  => ".*",
                 "attributes" => "",//Ex: temp,hum,desc
-                "q"          => ""
+                "q"          => ""//EX: temperatura>50;Sala=='B308';Teste=='ABC','DFG'
+            ],
+            'attributes_names' => [
+                "buildings"   => 'localizacao',
+                "rooms"       => 'Predio',
+                "sensors"     => 'Sala',
+                "modules"     => 'Sala'
             ]
         ],
         'ORION_CONFIGURATION' => [
@@ -64,7 +73,7 @@ return new \Phalcon\Config([
             'protocol'   => 'http',
             'url'        => 'localhost',
             'port'       => '5000',
-            'username'   => 'test@test.com',//User with access to orion
+            'username'   => 'user0@test.com',//User with access to orion
             'password'   => 'test'
         ]
     ]
