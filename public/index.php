@@ -4,6 +4,10 @@ use Phalcon\Di\FactoryDefault;
 use Phalcon\Mvc\Micro;
 use Phalcon\Events\Event;
 use Phalcon\Events\Manager as EventsManager;
+use GEBEM\Controllers\ModulesController as ModulesController;
+use GEBEM\Controllers\BuildingsController as BuildingsController;
+use GEBEM\Controllers\RoomsController as RoomsController;
+use GEBEM\Controllers\SensorsController as SensorsController;
 
 error_reporting(E_ALL);
 
@@ -68,6 +72,14 @@ try {
      * Bind the events manager to the app
      */
     $app->setEventsManager($eventsManager);
+
+    /**
+     * Routes controllers
+     */
+    $buildingsController = new BuildingsController();
+    $roomsController = new RoomsController();
+    $sensorsController = new SensorsController();
+    $modulesController = new ModulesController();
 
     /**
      * Include Application

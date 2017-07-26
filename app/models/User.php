@@ -1,49 +1,43 @@
 <?php
 
+namespace GEBEM\Models;
+
 use Phalcon\Validation;
 use Phalcon\Validation\Validator\Email as EmailValidator;
 use Phalcon\Validation\Validator\PresenceOf as PresenceOfValidator;
 use Phalcon\Validation\Validator\StringLength as StringLengthValidator;
+use Phalcon\Mvc\Model as Model;
 
-class Usuario extends \Phalcon\Mvc\Model
+class User extends Model
 {
 
     /**
      *
      * @var integer
-     * @Primary
-     * @Identity
-     * @Column(type="integer", length=11, nullable=false)
      */
     public $idusuario;
 
     /**
      *
      * @var string
-     * @Column(type="string", length=45, nullable=false)
      */
     public $name;
 
     /**
      *
      * @var string
-     * @Primary
-     * @Column(type="string", length=256, nullable=false)
      */
     public $email;
 
     /**
      *
      * @var string
-     * @Primary
-     * @Column(type="string", length=45, nullable=false)
      */
     public $username;
 
     /**
      *
      * @var string
-     * @Column(type="string", length=500, nullable=true)
      */
     public $password;
 
@@ -55,7 +49,6 @@ class Usuario extends \Phalcon\Mvc\Model
     public function validation()
     {
         $validator = new Validation();
-
         $validator->add(
             'name',
             new PresenceOfValidator([
@@ -63,7 +56,6 @@ class Usuario extends \Phalcon\Mvc\Model
                 'message' => 'Please enter a name.'
             ])
         );
-
         $validator->add(
             'email',
             new EmailValidator([
@@ -71,7 +63,6 @@ class Usuario extends \Phalcon\Mvc\Model
                 'message' => 'Please enter a correct email address.'
             ])
         );
-
         $validator->add(
             'email',
             new PresenceOfValidator([
@@ -79,7 +70,6 @@ class Usuario extends \Phalcon\Mvc\Model
                 'message' => 'Please enter an email.'
             ])
         );
-
         $validator->add(
             'username',
             new PresenceOfValidator([
@@ -87,7 +77,6 @@ class Usuario extends \Phalcon\Mvc\Model
                 'message' => 'Please enter an username.'
             ])
         );
-
         $validator->add(
             'password',
             new PresenceOfValidator([
@@ -95,7 +84,6 @@ class Usuario extends \Phalcon\Mvc\Model
                 'message' => 'Please enter a password.'
             ])
         );
-
         $validator->add(
             ["name", "email", "username"],
             new StringLengthValidator([
@@ -121,9 +109,7 @@ class Usuario extends \Phalcon\Mvc\Model
                 ]
             ])
         );
-
         return $this->validate($validator);
-
     }
 
     /**
@@ -133,14 +119,14 @@ class Usuario extends \Phalcon\Mvc\Model
      */
     public function getSource()
     {
-        return 'usuario';
+        return 'user';
     }
 
     /**
      * Allows to query a set of records that match the specified conditions
      *
      * @param mixed $parameters
-     * @return Usuario[]
+     * @return User[]
      */
     public static function find($parameters = null)
     {
@@ -151,7 +137,7 @@ class Usuario extends \Phalcon\Mvc\Model
      * Allows to query the first record that match the specified conditions
      *
      * @param mixed $parameters
-     * @return Usuario
+     * @return User
      */
     public static function findFirst($parameters = null)
     {

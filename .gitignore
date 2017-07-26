@@ -3,3 +3,4 @@
 /app/config/config.php
 *.log
 .idea/
+.phalcon

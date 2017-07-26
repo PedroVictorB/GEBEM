@@ -4,6 +4,7 @@ use Phalcon\Mvc\View\Simple as View;
 use Phalcon\Mvc\Url as UrlResolver;
 use Phalcon\Mvc\View\Engine\Volt as Volt;
 use Phalcon\Security as Security;
+use GEBEM\Utilities\PhalconOauthPDO as PhalconOauthPDO;
 
 /**
  * Shared configuration service
@@ -77,7 +78,6 @@ $di->setShared('security', function () {
 
     // Hash das senhas cadastradas(Mudar conforme a capacidade do servidor)
     $security->setWorkFactor(12);
-
     return $security;
 });
 
@@ -99,20 +99,30 @@ $di->set('router', function() {
 /**
  * OAuth2
  */
-$di->setShared('oauth2', function () {
+$di->setShared('oauth2', function () use ($di){
     $config = $this->getConfig();
 
-    $storage = new OAuth2\Storage\Pdo(array(
+//    $storage = new OAuth2\Storage\Pdo(array(
+//        'dsn' => $config->oauth2->dsn,
+//        'username' => $config->oauth2->username,
+//        'password' => $config->oauth2->password)
+//    );
+
+    $storage = new PhalconOauthPDO(array(
         'dsn' => $config->oauth2->dsn,
         'username' => $config->oauth2->username,
-        'password' => $config->oauth2->password)
-    );
+        'password' => $config->oauth2->password));
+
+    $storage->setDi($di);
 
     // Pass a storage object or array of storage objects to the OAuth2 server class
     $server = new OAuth2\Server($storage);
 
     // Add the "Client Credentials" grant type (it is the simplest of the grant types)
     $server->addGrantType(new OAuth2\GrantType\ClientCredentials($storage));
+
+    // Add the "User Credentials" grant type (Not recommended)
+//    $server->addGrantType(new OAuth2\GrantType\UserCredentials($storage));
 
     // Add the "Authorization Code" grant type (this is where the oauth magic happens)
     $server->addGrantType(new OAuth2\GrantType\AuthorizationCode($storage));
