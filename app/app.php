@@ -81,15 +81,16 @@ $app->post('/v1/form/registration', function () use ($app) {
         return;
     }
 
-    $user->password = $this->security->hash($user->password);
+    $hpass = $this->security->hash($user->password);
+    $user->password = $hpass;
 
     $ouser = new OUser();
-    $ouser->username = $user->name;
-    $ouser->password = $user->password;
+    $ouser->username = $user->username;
+    $ouser->password = $hpass;
 
     $cuser = new CUser();
     $cuser->client_id = $user->username;
-    $cuser->client_secret = $user->password;
+    $cuser->client_secret = $hpass;
     $cuser->redirect_uri = '/GEBEM/';
 
     $this->db->begin();
@@ -108,6 +109,7 @@ $app->post('/v1/form/registration', function () use ($app) {
         );
         return;
     }
+    $this->db->commit();
 
     echo $this['view']->render('index', array(
             'success' => 'success',
