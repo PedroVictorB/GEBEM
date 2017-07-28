@@ -215,14 +215,6 @@ $app->post('/v1/token', function () use ($app) {
 });
 
 /**
- * Authentication refresh route
- */
-$app->put('/v1/token', function () use ($app) {
-    // Handle a request for an OAuth2.0 Access Token and send the response to the client
-    $this->oauth2->handleTokenRequest(OAuth2\Request::createFromGlobals())->send();
-});
-
-/**
  * Buildings route
  * [GET] Get all the buildings
  */
