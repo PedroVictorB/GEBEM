@@ -46,9 +46,15 @@ try {
         "micro:beforeExecuteRoute",
         function (Event $event, $app) {
 
-            //Acesso a / e /v1/token pode ser feito
+            if(!$app->config->GEBEM->API_CONFIGURATION->use_oauth2_protection){
+                return true;
+            }
+
+            //Acesso a index, token e registros pode ser feito sem token
             if ($app['router']->getRewriteUri() == '/' ||
-                $app['router']->getRewriteUri() == '/v1/token') {
+                $app['router']->getRewriteUri() == '/v1/token' ||
+                $app['router']->getRewriteUri() == '/v1/form/registration' ||
+                $app['router']->getRewriteUri() == '/v1/registration') {
                 return true;
             }
 
