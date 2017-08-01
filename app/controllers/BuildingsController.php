@@ -392,6 +392,7 @@ class BuildingsController extends Controller
         $q = Util::getBestParamValue("q", "", $configParams, $_GET);
 
         try{
+            $configAttribute = $this->config->GEBEM->API_CONFIGURATION->attributes_names->toArray();
             if(empty($q)){
                 $load = array(
                     'entities' => $entities,
@@ -399,7 +400,7 @@ class BuildingsController extends Controller
                     'restriction' => [
                         'scopes' => [[
                             'type' => "FIWARE::StringQuery",
-                            'value' => $this->config->GEBEM->API_CONFIGURATION->attributes_names->rooms."=='".$id_b."'"
+                            'value' => Util::getBestParamValue("rooms", "Predio", $configAttribute, array())."=='".$id_b."'"
                         ]]
                     ]
                 );
@@ -410,7 +411,7 @@ class BuildingsController extends Controller
                     'restriction' => [
                         'scopes' => [[
                             'type' => "FIWARE::StringQuery",
-                            'value' => $q.";".$this->config->GEBEM->API_CONFIGURATION->attributes_names->rooms."=='".$id_b."'"
+                            'value' => $q.";".Util::getBestParamValue("rooms", "Predio", $configAttribute, array())."=='".$id_b."'"
                         ]]
                     ]
                 );
@@ -559,13 +560,15 @@ class BuildingsController extends Controller
         $q = Util::getBestParamValue("q", "", $configParams, $_GET);
 
         try{
+            $configAttribute = $this->config->GEBEM->API_CONFIGURATION->attributes_names->toArray();
+
             $load = array(
                 'entities' => $entities,
                 'attributes' => array(),
                 'restriction' => [
                     'scopes' => [[
                         'type' => "FIWARE::StringQuery",
-                        'value' => $this->config->GEBEM->API_CONFIGURATION->attributes_names->rooms."=='".$id_b."'"
+                        'value' => Util::getBestParamValue("rooms", "Predio", $configAttribute, array())."=='".$id_b."'"
                     ]]
                 ]
             );
@@ -616,7 +619,9 @@ class BuildingsController extends Controller
 
         $rooms = json_decode($res->getBody())->contextResponses;
 
-        $sensorQuery = $this->config->GEBEM->API_CONFIGURATION->attributes_names->sensors."==";
+        $configAttribute = $this->config->GEBEM->API_CONFIGURATION->attributes_names->toArray();
+
+        $sensorQuery = Util::getBestParamValue("sensors", "Sala", $configAttribute, array())."==";
         $count = 0;
         foreach ($rooms as $room){
             if($count == 0){
@@ -805,13 +810,15 @@ class BuildingsController extends Controller
         $q = Util::getBestParamValue("q", "", $configParams, $_GET);
 
         try{
+            $configAttributes = $this->config->GEBEM->API_CONFIGURATION->attributes_names->toArray();
+
             $load = array(
                 'entities' => $entities,
                 'attributes' => array(),
                 'restriction' => [
                     'scopes' => [[
                         'type' => "FIWARE::StringQuery",
-                        'value' => $this->config->GEBEM->API_CONFIGURATION->attributes_names->rooms."=='".$id_b."'"
+                        'value' => Util::getBestParamValue("rooms", "Predio", $configAttributes, array())."=='".$id_b."'"
                     ]]
                 ]
             );
@@ -862,7 +869,7 @@ class BuildingsController extends Controller
 
         $rooms = json_decode($res->getBody())->contextResponses;
 
-        $moduleQuery = $this->config->GEBEM->API_CONFIGURATION->attributes_names->modules."==";
+        $moduleQuery = Util::getBestParamValue("modules", "Sala", $configAttributes, array())."==";
         $count = 0;
         foreach ($rooms as $room){
             if($count == 0){

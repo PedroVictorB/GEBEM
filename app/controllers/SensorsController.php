@@ -165,7 +165,7 @@ class SensorsController extends Controller
 
         echo json_encode(
             array(
-                "GEBEM_BUILDINGS" =>
+                "GEBEM_MODULES" =>
                     $tempSensors
             ,
                 "GEBEM_STATUS" =>
@@ -327,7 +327,7 @@ class SensorsController extends Controller
 
         echo json_encode(
             array(
-                "GEBEM_BUILDINGS" =>
+                "GEBEM_MODULES" =>
                     $tempSensors
             ,
                 "GEBEM_STATUS" =>

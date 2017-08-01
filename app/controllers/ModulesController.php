@@ -165,7 +165,7 @@ class ModulesController extends Controller
 
         echo json_encode(
             array(
-                "GEBEM_BUILDINGS" =>
+                "GEBEM_MODULES" =>
                     $tempModules
             ,
                 "GEBEM_STATUS" =>
@@ -327,7 +327,7 @@ class ModulesController extends Controller
 
         echo json_encode(
             array(
-                "GEBEM_BUILDINGS" =>
+                "GEBEM_MODULES" =>
                     $tempModules
             ,
                 "GEBEM_STATUS" =>
