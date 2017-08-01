@@ -12,7 +12,7 @@ use GEBEM\Controllers\SensorsController as SensorsController;
 error_reporting(E_ALL);
 
 define('BASE_PATH', dirname(__DIR__));
-define('APP_PATH', BASE_PATH . '/app');
+define('APP_PATH', empty(getenv('IS_HEROKU_DEPLOYED')) ? BASE_PATH . '/app' : BASE_PATH);
 
 try {
 
