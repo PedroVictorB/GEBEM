@@ -218,7 +218,7 @@ $app->post('/v1/token', function () use ($app) {
  * Notification route
  * [POST] Entrance point for ORION subscriptions
  */
-$app->get('/v1/notify', array($notificationController, 'notify'));
+$app->post('/v1/notify', array($notificationController, 'notify'));
 
 /**
  * Buildings route
