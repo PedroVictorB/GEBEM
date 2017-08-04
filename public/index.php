@@ -8,6 +8,8 @@ use GEBEM\Controllers\ModulesController as ModulesController;
 use GEBEM\Controllers\BuildingsController as BuildingsController;
 use GEBEM\Controllers\RoomsController as RoomsController;
 use GEBEM\Controllers\SensorsController as SensorsController;
+use GEBEM\Controllers\NotificationController as NotificationController;
+use \GEBEM\Controllers\EnergyController as EnergyController;
 
 error_reporting(E_ALL);
 
@@ -87,6 +89,8 @@ try {
     $roomsController = new RoomsController();
     $sensorsController = new SensorsController();
     $modulesController = new ModulesController();
+    $notificationController = new NotificationController();
+    $energyController = new EnergyController();
 
     /**
      * Include Application

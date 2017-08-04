@@ -215,6 +215,12 @@ $app->post('/v1/token', function () use ($app) {
 });
 
 /**
+ * Notification route
+ * [POST] Entrance point for ORION subscriptions
+ */
+$app->get('/v1/notify', array($notificationController, 'notify'));
+
+/**
  * Buildings route
  * [GET] Get all the buildings
  */
@@ -291,3 +297,51 @@ $app->get('/v1/modules', array($modulesController, 'getModules'));
  * [GET] Get one module based on its ID
  */
 $app->get('/v1/modules/{id_m}', array($modulesController, 'getOneModule'));
+
+/**
+ * Energy route
+ * [GET] Get all buildings energy information
+ */
+$app->get('/v1/energy/buildings', array($energyController, 'getBuildings'));
+
+/**
+ * Energy route
+ * [GET] Get one building energy information
+ */
+$app->get('/v1/energy/buildings/{id_b}', array($energyController, 'getOneBuilding'));
+
+/**
+ * Energy route
+ * [GET] Get all rooms energy information
+ */
+$app->get('/v1/energy/rooms', array($energyController, 'getRooms'));
+
+/**
+ * Energy route
+ * [GET] Get one room energy information
+ */
+$app->get('/v1/energy/room/{id_r}', array($energyController, 'getOneRoom'));
+
+/**
+ * Energy route
+ * [GET] Get all sensors energy information
+ */
+$app->get('/v1/energy/sensors', array($energyController, 'getSensors'));
+
+/**
+ * Energy route
+ * [GET] Get one sensor energy information
+ */
+$app->get('/v1/energy/sensors/{id_s}', array($energyController, 'getOneSensor'));
+
+/**
+ * Energy route
+ * [GET] Get all modules energy information
+ */
+$app->get('/v1/energy/modules', array($energyController, 'getModules'));
+
+/**
+ * Energy route
+ * [GET] Get one module energy information
+ */
+$app->get('/v1/energy/modules/{id_m}', array($energyController, 'getOneModule'));
