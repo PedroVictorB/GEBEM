@@ -15,7 +15,7 @@ use Phalcon\Mvc\Controller as Controller;
 class EnergyController extends Controller
 {
     public function getBuildings(){
-
+        
     }
 
     public function getOneBuilding($id_b){
@@ -27,14 +27,6 @@ class EnergyController extends Controller
     }
 
     public function getOneRoom($id_r){
-
-    }
-
-    public function getSensors(){
-
-    }
-
-    public function getOneSensor($id_s){
 
     }
 

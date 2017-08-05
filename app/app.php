@@ -324,18 +324,6 @@ $app->get('/v1/energy/room/{id_r}', array($energyController, 'getOneRoom'));
 
 /**
  * Energy route
- * [GET] Get all sensors energy information
- */
-$app->get('/v1/energy/sensors', array($energyController, 'getSensors'));
-
-/**
- * Energy route
- * [GET] Get one sensor energy information
- */
-$app->get('/v1/energy/sensors/{id_s}', array($energyController, 'getOneSensor'));
-
-/**
- * Energy route
  * [GET] Get all modules energy information
  */
 $app->get('/v1/energy/modules', array($energyController, 'getModules'));
