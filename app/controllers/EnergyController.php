@@ -10,7 +10,8 @@ namespace GEBEM\Controllers;
 
 use GEBEM\Utilities\Util as Util;
 use Phalcon\Mvc\Controller as Controller;
-
+use GuzzleHttp\Client as GuzzleClient;
+use GuzzleHttp\Exception\RequestException as GuzzleRequestException;
 
 class EnergyController extends Controller
 {
@@ -31,7 +32,7 @@ class EnergyController extends Controller
     }
 
     public function getModules(){
-
+        
     }
 
     public function getOneModule($id_m){
