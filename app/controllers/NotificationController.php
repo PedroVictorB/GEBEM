@@ -8,8 +8,8 @@
 
 namespace GEBEM\Controllers;
 
+use GEBEM\Database\NotificationDB;
 use Phalcon\Mvc\Controller as Controller;
-use Phalcon\Db\Column as Column;
 
 class NotificationController extends Controller
 {
@@ -22,9 +22,11 @@ class NotificationController extends Controller
             $elementType = $entity->contextElement->type;
             $elementId = $entity->contextElement->id;
             $value_date = date("Y-m-d H:i:s");
+            
+            $notificationDB = new NotificationDB();
 
-            if(!$this->db->tableExists($tableName, $this->config->database->dbname)){
-                $this->createElementTable($entity);
+            if(!$notificationDB->checkTableExists($tableName, $this->config->database->dbname)){
+                $notificationDB->createElementTable($entity);
             }
 
             foreach ($entity->contextElement->attributes as $attribute){
@@ -35,78 +37,15 @@ class NotificationController extends Controller
 //                $sql = "INSERT INTO $tableName (id, element_type, element_id, attr_name, attr_type, attr_value, value_date)
 //                        VALUES null, '$elementType', '$elementId', '$attr_name', '$attr_type', '$attr_value', '$value_date'";
 
-                $this->db->insert(
+                $notificationDB->insertEntity(
                     $tableName,
-                    [null, $elementType, $elementId, $attr_name, $attr_type, $attr_value, $value_date],
-                    ['id', 'element_type', 'element_id', 'attr_name', 'attr_type', 'attr_value', 'value_date']
+                    [0 => null, 1 => $elementType, 2 => $elementId, 3 => $attr_name, 4 => $attr_type, 5 => $attr_value, 6 =>$value_date],
+                    [0 => 'id', 1 => 'element_type', 2 => 'element_id', 3 => 'attr_name', 4 => 'attr_type', 5 => 'attr_value', 6 =>'value_date']
                 );
                 
             }
 
         }
 
-    }
-
-    private function createElementTable($entity){
-        $this->db->createTable("GEBEM_".$entity->contextElement->id, $this->config->database->dbname, [
-            'columns' => [
-                new Column(
-                    'id',
-                    [
-                        'type'          => Column::TYPE_INTEGER,
-                        'notNull'       => true,
-                        'autoIncrement' => true,
-                        'primary'       => true,
-                    ]
-                ),
-                new Column(
-                    'element_type',
-                    [
-                        'type'    => Column::TYPE_VARCHAR,
-                        'size'    => 100,
-                        'notNull' => true,
-                    ]
-                ),
-                new Column(
-                    'element_id',
-                    [
-                        'type'    => Column::TYPE_VARCHAR,
-                        'size'    => 500,
-                        'notNull' => true,
-                    ]
-                ),
-                new Column(
-                    'attr_name',
-                    [
-                        'type'    => Column::TYPE_VARCHAR,
-                        'size'    => 500,
-                        'notNull' => true,
-                    ]
-                ),
-                new Column(
-                    'attr_type',
-                    [
-                        'type'    => Column::TYPE_VARCHAR,
-                        'size'    => 100,
-                        'notNull' => true,
-                    ]
-                ),
-                new Column(
-                    'attr_value',
-                    [
-                        'type'    => Column::TYPE_VARCHAR,
-                        'size'    => 100,
-                        'notNull' => true,
-                    ]
-                ),
-                new Column(
-                    'value_date',
-                    [
-                        'type'    => Column::TYPE_DATETIME,
-                        'notNull' => true,
-                    ]
-                ),
-            ]
-        ]);
     }
 }
