@@ -16,7 +16,7 @@ class NotificationController extends Controller
     public function notify(){
 
         $entities = json_decode(file_get_contents('php://input'))->contextResponses;
-
+        date_default_timezone_set('America/Recife');
         foreach ($entities as $entity){
             $tableName = "GEBEM_".$entity->contextElement->id;
             $elementType = $entity->contextElement->type;
