@@ -32,12 +32,12 @@ class NotificationDB implements NotificationDBInteface
         );
     }
 
-    public function checkTableExists($tableName, $config){
-        return $this->db->tableExists($tableName, $config);
+    public function checkTableExists($tableName, $dbname){
+        return $this->db->tableExists($tableName, $dbname);
     }
 
-    public function createElementTable($entity){
-        $this->db->createTable("GEBEM_".$entity->contextElement->id, $this->config->database->dbname, [
+    public function createElementTable($entity, $dbname){
+        $this->db->createTable("GEBEM_".$entity->contextElement->id, $dbname, [
             'columns' => [
                 new Column(
                     'id',

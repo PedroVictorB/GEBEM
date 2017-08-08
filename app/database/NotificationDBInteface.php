@@ -13,5 +13,5 @@ interface NotificationDBInteface
 {
     public function insertEntity($tableName, $values, $values_names_db);
     public function checkTableExists($tableName, $config);
-    public function createElementTable($entity);
+    public function createElementTable($entity, $config);
 }

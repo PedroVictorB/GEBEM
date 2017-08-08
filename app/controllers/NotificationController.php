@@ -26,7 +26,7 @@ class NotificationController extends Controller
             $notificationDB = new NotificationDB();
 
             if(!$notificationDB->checkTableExists($tableName, $this->config->database->dbname)){
-                $notificationDB->createElementTable($entity);
+                $notificationDB->createElementTable($entity, $this->config->database->dbname);
             }
 
             foreach ($entity->contextElement->attributes as $attribute){
