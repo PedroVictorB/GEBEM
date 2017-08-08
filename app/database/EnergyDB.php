@@ -12,7 +12,7 @@ namespace GEBEM\Database;
 use Phalcon\Di as Di;
 use Phalcon\Db as Db;
 
-class EnergyDB extends \Phalcon\Db\Adapter\Pdo\Mysql implements EnergyDBInterface
+class EnergyDB implements EnergyDBInterface
 {
     protected $db;
 
