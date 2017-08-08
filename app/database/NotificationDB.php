@@ -24,20 +24,48 @@ class NotificationDB implements NotificationDBInteface
         $this->db = $this->db = Di::getDefault()->get('db');
     }
 
+    /**
+     * @param $tableName
+     * @param $values
+     * @param $values_names_db
+     *
+     * Insert Entity in db
+     *
+     * @return boolean
+     *
+     */
     public function insertEntity($tableName, $values, $values_names_db){
-        $this->db->insert(
+        return $this->db->insert(
             $tableName,
             [$values[0], $values[1], $values[2], $values[3], $values[4], $values[5], $values[6]],
             [$values_names_db[0], $values_names_db[1], $values_names_db[2], $values_names_db[3],$values_names_db[4], $values_names_db[5], $values_names_db[6]]
         );
     }
 
+    /**
+     * @param $tableName
+     * @param $dbname
+     * @return mixed
+     *
+     * Check if table exists
+     *
+     * @return boolean
+     */
     public function checkTableExists($tableName, $dbname){
         return $this->db->tableExists($tableName, $dbname);
     }
 
+    /**
+     * @param $entity
+     * @param $dbname
+     * @return mixed
+     *
+     * Create entity table
+     *
+     * @return boolean
+     */
     public function createElementTable($entity, $dbname){
-        $this->db->createTable("GEBEM_".$entity->contextElement->id, $dbname, [
+        return $this->db->createTable("GEBEM_".$entity->contextElement->id, $dbname, [
             'columns' => [
                 new Column(
                     'id',
