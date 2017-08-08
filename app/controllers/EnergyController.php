@@ -8,6 +8,7 @@
 
 namespace GEBEM\Controllers;
 
+use GEBEM\Database\EnergyDB;
 use GEBEM\Utilities\Util as Util;
 use Phalcon\Mvc\Controller as Controller;
 use GuzzleHttp\Client as GuzzleClient;
@@ -148,31 +149,17 @@ class EnergyController extends Controller
         $energyModules = array();
         $datef = Util::getBestParamValue("from", (new \DateTime())->modify('-24 hours')->format('Y-m-d H:i:s'), array(), $_GET);
         $datet = Util::getBestParamValue("to", (new \DateTime())->format('Y-m-d H:i:s'), array(), $_GET);
+        $energyDB = new EnergyDB();
+
+        $totalConsumption = 0;
 
         foreach ($modules as $module){
             $tableName = "GEBEM_".$module->contextElement->id;
-            
-            $sumtotal = $this->db->query(
-                "SELECT COALESCE(SUM(attr_value), 0) as total FROM $tableName WHERE element_id = :id AND attr_name = :attrn AND value_date BETWEEN :datef AND :datet",
-                [
-                    'id' => $module->contextElement->id,
-                    'attrn' => "Consumption",
-                    'datef' => $datef,
-                    'datet' => $datet
-                ]
-            )->fetchAll()[0];
 
-            $result = $this->db->query(
-                "SELECT * FROM $tableName WHERE element_id = :id AND attr_name = :attrn AND value_date BETWEEN :datef AND :datet",
-                [
-                    'id' => $module->contextElement->id,
-                    'attrn' => "Consumption",
-                    'datef' => $datef,
-                    'datet' => $datet
-                ]
-            );
-            $result->setFetchMode(Db::FETCH_OBJ);
-            $elements = $result->fetchAll();
+            $sumtotal = $energyDB->getModuleEnergySumTotal($module->contextElement->id, $tableName, "Consumption", $datef, $datet);
+
+            $elements = $energyDB->getModuleData($module->contextElement->id, $tableName, "Consumption", $datef, $datet);
+            
             $h = array();
             foreach ($elements as $element){
                 array_push($h, array(
@@ -181,12 +168,12 @@ class EnergyController extends Controller
                 ));
             }
 
+            $totalConsumption += $sumtotal;
+
             array_push($energyModules, array(
                 "id" => $module->contextElement->id,
                 "type" =>$module->contextElement->type,
-                "total_consumption" => $sumtotal['total'],
-                "from" => $module->contextElement->isPattern,
-                "to" => $module->contextElement->isPattern,
+                "total_consumption" => $sumtotal,
                 "historical_values" => $h
             ));
         }
@@ -194,8 +181,12 @@ class EnergyController extends Controller
         echo json_encode(
             array(
                 "GEBEM_ENERGY" =>
-                    $energyModules
-            ,
+                    array(
+                        'total_consumption' => $totalConsumption,
+                        "from" => $datef,
+                        "to" => $datet,
+                        'modules' => $energyModules
+                    ),
                 "GEBEM_STATUS" =>
                     array(
                         "code" => "200",
@@ -322,31 +313,17 @@ class EnergyController extends Controller
         $energyModules = array();
         $datef = Util::getBestParamValue("from", (new \DateTime())->modify('-24 hours')->format('Y-m-d H:i:s'), array(), $_GET);
         $datet = Util::getBestParamValue("to", (new \DateTime())->format('Y-m-d H:i:s'), array(), $_GET);
+        $energyDB = new EnergyDB();
+
+        $totalConsumption = 0;
 
         foreach ($modules as $module){
             $tableName = "GEBEM_".$module->contextElement->id;
 
-            $sumtotal = $this->db->query(
-                "SELECT COALESCE(SUM(attr_value), 0) as total FROM $tableName WHERE element_id = :id AND attr_name = :attrn AND value_date BETWEEN :datef AND :datet",
-                [
-                    'id' => $module->contextElement->id,
-                    'attrn' => "Consumption",
-                    'datef' => $datef,
-                    'datet' => $datet
-                ]
-            )->fetchAll()[0];
+            $sumtotal = $energyDB->getModuleEnergySumTotal($module->contextElement->id, $tableName, "Consumption", $datef, $datet);
 
-            $result = $this->db->query(
-                "SELECT * FROM $tableName WHERE element_id = :id AND attr_name = :attrn AND value_date BETWEEN :datef AND :datet",
-                [
-                    'id' => $module->contextElement->id,
-                    'attrn' => "Consumption",
-                    'datef' => $datef,
-                    'datet' => $datet
-                ]
-            );
-            $result->setFetchMode(Db::FETCH_OBJ);
-            $elements = $result->fetchAll();
+            $elements = $energyDB->getModuleData($module->contextElement->id, $tableName, "Consumption", $datef, $datet);
+            
             $h = array();
             foreach ($elements as $element){
                 array_push($h, array(
@@ -355,21 +332,24 @@ class EnergyController extends Controller
                 ));
             }
 
+            $totalConsumption += $sumtotal;
+
             array_push($energyModules, array(
                 "id" => $module->contextElement->id,
                 "type" =>$module->contextElement->type,
-                "total_consumption" => $sumtotal['total'],
-                "from" => $module->contextElement->isPattern,
-                "to" => $module->contextElement->isPattern,
+                "total_consumption" => $sumtotal,
                 "historical_values" => $h
             ));
         }
 
         echo json_encode(
             array(
-                "GEBEM_ENERGY" =>
-                    $energyModules
-            ,
+                "GEBEM_ENERGY" => array(
+                    'total_consumption' => $totalConsumption,
+                    "from" => $datef,
+                    "to" => $datet,
+                    'modules' => $energyModules
+                ),
                 "GEBEM_STATUS" =>
                     array(
                         "code" => "200",
