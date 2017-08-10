@@ -320,7 +320,7 @@ $app->get('/v1/energy/rooms', array($energyController, 'getRooms'));
  * Energy route
  * [GET] Get one room energy information
  */
-$app->get('/v1/energy/room/{id_r}', array($energyController, 'getOneRoom'));
+$app->get('/v1/energy/rooms/{id_r}', array($energyController, 'getOneRoom'));
 
 /**
  * Energy route
