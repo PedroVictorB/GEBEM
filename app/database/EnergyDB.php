@@ -11,6 +11,7 @@ namespace GEBEM\Database;
 
 use Phalcon\Di as Di;
 use Phalcon\Db as Db;
+use Phalcon\Db\Column as Column;
 
 class EnergyDB implements EnergyDBInterface
 {
@@ -80,5 +81,89 @@ class EnergyDB implements EnergyDBInterface
             ]
         )->fetchAll()[0]['total'];
     }
-    
+
+    /**
+     * @param $tableName
+     * @param $dbname
+     * @return mixed
+     *
+     * Check if table exists
+     *
+     * @return boolean
+     */
+    public function checkTableExists($tableName, $dbname){
+        return $this->db->tableExists($tableName, $dbname);
+    }
+
+    /**
+     * @param $entity
+     * @param $dbname
+     * @return mixed
+     *
+     * Create entity table
+     *
+     * @return boolean
+     */
+    public function createElementTable($entity, $dbname){
+        return $this->db->createTable("GEBEM_".$entity->contextElement->id, $dbname, [
+            'columns' => [
+                new Column(
+                    'id',
+                    [
+                        'type'          => Column::TYPE_INTEGER,
+                        'notNull'       => true,
+                        'autoIncrement' => true,
+                        'primary'       => true,
+                    ]
+                ),
+                new Column(
+                    'element_type',
+                    [
+                        'type'    => Column::TYPE_VARCHAR,
+                        'size'    => 100,
+                        'notNull' => true,
+                    ]
+                ),
+                new Column(
+                    'element_id',
+                    [
+                        'type'    => Column::TYPE_VARCHAR,
+                        'size'    => 500,
+                        'notNull' => true,
+                    ]
+                ),
+                new Column(
+                    'attr_name',
+                    [
+                        'type'    => Column::TYPE_VARCHAR,
+                        'size'    => 500,
+                        'notNull' => true,
+                    ]
+                ),
+                new Column(
+                    'attr_type',
+                    [
+                        'type'    => Column::TYPE_VARCHAR,
+                        'size'    => 100,
+                        'notNull' => true,
+                    ]
+                ),
+                new Column(
+                    'attr_value',
+                    [
+                        'type'    => Column::TYPE_VARCHAR,
+                        'size'    => 100,
+                        'notNull' => true,
+                    ]
+                ),
+                new Column(
+                    'value_date',
+                    [
+                        'type'    => Column::TYPE_DATETIME,
+                        'notNull' => true,
+                    ]
+                ),
+            ]
+        ]);
+    }
 }
