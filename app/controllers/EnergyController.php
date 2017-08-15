@@ -22,7 +22,271 @@ class EnergyController extends Controller
     }
 
     public function getOneBuilding($id_b){
+        $client = new GuzzleClient();
 
+        $configParams = $this->config->GEBEM->API_CONFIGURATION->params->toArray();
+
+        $showDetails = Util::getBestParamValue("details", "on", $configParams, $_GET) == "on" ? true : false;
+
+//        $params =   "?offset=".Util::getBestParamValue("offset", "0", $configParams, $_GET)
+//            ."&limit=".Util::getBestParamValue("limit", "100", $configParams, $_GET)
+//            ."&details=".Util::getBestParamValue("details", "off", $configParams, $_GET)
+//            ."&orderBy=".Util::getBestParamValue("orderBy", "", $configParams, $_GET);
+
+        $roomTypes = $this->config->GEBEM->API_CONFIGURATION->roomTypes;
+        $entities = array();
+        for($i = 0;$i < count($roomTypes);$i++){
+            array_push($entities, array(
+                "type" => $roomTypes[$i],
+                "isPattern" => true,
+                "id" => ".*"
+            ));
+        }
+
+        $attributes = array();
+        if(isset($_GET["attributes"])){
+            $attributes = explode(",", Util::getBestParamValue("attributes", "", $configParams, $_GET));
+        }
+
+        $token = '';
+        if($this->config->GEBEM->ORION_CONFIGURATION->isProtected){
+            $configToken = $this->config->GEBEM->IDM_CONFIGURATION->toArray();
+            $resToken = Util::getKeystoneToken($configToken);
+
+            if(empty($resToken->getHeader('X-Subject-Token')) || $resToken->getStatusCode() !== 201){
+                echo json_encode(
+                    array("GEBEM_STATUS" =>
+                        array(
+                            "code" => $resToken->getStatusCode(),
+                            "reasonPhrase" => $resToken->getReasonPhrase(),
+                            "details" => "Error getting token from keystone"
+                        )
+                    )
+                );
+                return;
+            }
+
+            $token = $resToken->getHeader('X-Subject-Token')[0];
+        }
+
+//        $q = Util::getBestParamValue("q", "", $configParams, $_GET);
+
+        try{
+            $configAttribute = $this->config->GEBEM->API_CONFIGURATION->attributes_names->toArray();
+
+            $load = array(
+                'entities' => $entities,
+                'attributes' => $attributes,
+                'restriction' => [
+                    'scopes' => [[
+                        'type' => "FIWARE::StringQuery",
+                        'value' => Util::getBestParamValue("rooms", "Predio", $configAttribute, array())."=='".$id_b."'"
+                    ]]
+                ]
+            );
+
+            $res = $client->post(
+                $this->config->GEBEM->ORION_CONFIGURATION->protocol.'://'
+                .$this->config->GEBEM->ORION_CONFIGURATION->url.':'
+                .$this->config->GEBEM->ORION_CONFIGURATION->port
+                .'/v1/queryContext'
+                , array(
+                    'headers' => [
+                        'Content-Type' => 'application/json',
+                        'Accept' => 'application/json',
+                        'X-Auth-Token' => $token
+                    ],
+                    "json" => $load
+                )
+
+            );
+        }catch (GuzzleRequestException $e){
+            echo json_encode(
+                array("GEBEM_STATUS" =>
+                    array(
+                        "code" => $e->getResponse()->getStatusCode(),
+                        "reasonPhrase" => $e->getResponse()->getReasonPhrase(),
+                        "details" => "Error while communicating to ORION (Contact admin)"
+                    )
+                )
+            );
+            return;
+        }
+
+        $response = json_decode($res->getBody()->getContents());
+
+        if(isset($response->errorCode) && $response->errorCode->code != 200){
+            echo json_encode(
+                array("GEBEM_STATUS" =>
+                    array(
+                        "code" => $response->errorCode->code,
+                        "reasonPhrase" => $response->errorCode->reasonPhrase,
+                        "details" => isset($response->errorCode->details) ? $response->errorCode->details : "Error"
+                    )
+                )
+            );
+            return;
+        }
+
+        $rooms = json_decode($res->getBody())->contextResponses;
+        $configAttributes = $this->config->GEBEM->API_CONFIGURATION->attributes_names->toArray();
+        $moduleQuery = Util::getBestParamValue("modules", "Sala", $configAttributes, array())."==";
+        $count = 0;
+        $salas = array();
+        foreach ($rooms as $room){
+            if($count == 0){
+                $moduleQuery .= "'".$room->contextElement->id."'";
+            }else{
+                $moduleQuery .= ",'".$room->contextElement->id."'";
+            }
+            $count++;
+            array_push($salas, array(
+                "id" => $room->contextElement->id,
+                "total_consumption" => 0,
+                "modules" => array()
+            ));
+        }
+
+        $moduleTypes = $this->config->GEBEM->API_CONFIGURATION->moduleTypes;
+        $entities = array();
+        for($i = 0;$i < count($moduleTypes);$i++){
+            array_push($entities, array(
+                "type" => $moduleTypes[$i],
+                "isPattern" => true,
+                "id" => ".*"
+            ));
+        }
+
+        try{
+            $load = array(
+                'entities' => $entities,
+                'attributes' => array(),
+                'restriction' => [
+                    'scopes' => [[
+                        'type' => "FIWARE::StringQuery",
+                        'value' => $moduleQuery
+                    ]]
+                ]
+            );
+
+            $res = $client->post(
+                $this->config->GEBEM->ORION_CONFIGURATION->protocol.'://'
+                .$this->config->GEBEM->ORION_CONFIGURATION->url.':'
+                .$this->config->GEBEM->ORION_CONFIGURATION->port
+                .'/v1/queryContext'
+                , array(
+                    'headers' => [
+                        'Content-Type' => 'application/json',
+                        'Accept' => 'application/json',
+                        'X-Auth-Token' => $token
+                    ],
+                    "json" => $load
+                )
+
+            );
+        }catch (GuzzleRequestException $e){
+            echo json_encode(
+                array("GEBEM_STATUS" =>
+                    array(
+                        "code" => $e->getResponse()->getStatusCode(),
+                        "reasonPhrase" => $e->getResponse()->getReasonPhrase(),
+                        "details" => "Error while communicating to ORION (Contact admin)"
+                    )
+                )
+            );
+            return;
+        }
+
+        $response = json_decode($res->getBody()->getContents());
+
+        if(isset($response->errorCode) && $response->errorCode->code != 200){
+            echo json_encode(
+                array("GEBEM_STATUS" =>
+                    array(
+                        "code" => $response->errorCode->code,
+                        "reasonPhrase" => $response->errorCode->reasonPhrase,
+                        "details" => isset($response->errorCode->details) ? $response->errorCode->details : "Error"
+                    )
+                )
+            );
+            return;
+        }
+
+        $modules = json_decode($res->getBody())->contextResponses;
+
+        date_default_timezone_set('America/Recife');
+        $datef = Util::getBestParamValue("from", (new \DateTime())->modify('-24 hours')->format('Y-m-d H:i:s'), array(), $_GET);
+        $datet = Util::getBestParamValue("to", (new \DateTime())->format('Y-m-d H:i:s'), array(), $_GET);
+        $energyDB = new EnergyDB();
+        $totalConsumption = 0;
+        $salas_r = array();
+        foreach ($salas as $sala){
+            $energyModules = array();
+            $totalConsumption = 0;
+            foreach ($modules as $module){
+
+                $idsala = "";
+                foreach ($module->contextElement->attributes as $attribute){
+                    if(Util::getBestParamValue("modules", "Sala", $configAttributes, array()) == $attribute->name){
+                        $idsala = $attribute->value;
+                    }
+                }
+
+                if($sala["id"] != $idsala){
+                    continue;
+                }
+
+                $tableName = "GEBEM_".$module->contextElement->id;
+
+                if(!$energyDB->checkTableExists($tableName, $this->config->database->dbname)){
+                    $energyDB->createElementTable($module->contextElement->id, $this->config->database->dbname);
+                }
+
+                $sumtotal = $energyDB->getModuleEnergySumTotal($module->contextElement->id, $tableName, "Consumption", $datef, $datet);
+
+                $elements = $energyDB->getModuleData($module->contextElement->id, $tableName, "Consumption", $datef, $datet);
+
+                $h = array();
+                foreach ($elements as $element){
+                    array_push($h, array(
+                        'date' => $element->value_date,
+                        'value' => $element->attr_value
+                    ));
+                }
+
+                $totalConsumption += $sumtotal;
+
+                array_push($energyModules, array(
+                    "id" => $module->contextElement->id,
+                    "type" =>$module->contextElement->type,
+                    "total_consumption" => $sumtotal,
+                    "historical_values" => $h
+                ));
+
+            }
+
+            $sala['total_consumption'] = $totalConsumption;
+            $sala['modules'] = $energyModules;
+
+            array_push($salas_r, $sala);
+        }
+
+        echo json_encode(
+            array(
+                "GEBEM_ROOMS" =>
+                    array(
+                        "id" => $id_b,
+                        "total_consumption" => $totalConsumption,
+                        "salas" => $salas_r
+                    ),
+                "GEBEM_STATUS" =>
+                    array(
+                        "code" => "200",
+                        "reasonPhrase" => "OK",
+                        "details" => $showDetails ? $response->errorCode->details : ""
+                    )
+            )
+        );
     }
 
     public function getRooms(){
@@ -403,10 +667,10 @@ class EnergyController extends Controller
 
         $showDetails = Util::getBestParamValue("details", "on", $configParams, $_GET) == "on" ? true : false;
 
-        $params =   "?offset=".Util::getBestParamValue("offset", "0", $configParams, $_GET)
-            ."&limit=".Util::getBestParamValue("limit", "100", $configParams, $_GET)
-            ."&details=".Util::getBestParamValue("details", "off", $configParams, $_GET)
-            ."&orderBy=".Util::getBestParamValue("orderBy", "", $configParams, $_GET);
+//        $params =   "?offset=".Util::getBestParamValue("offset", "0", $configParams, $_GET)
+//            ."&limit=".Util::getBestParamValue("limit", "100", $configParams, $_GET)
+//            ."&details=".Util::getBestParamValue("details", "off", $configParams, $_GET)
+//            ."&orderBy=".Util::getBestParamValue("orderBy", "", $configParams, $_GET);
 
         $moduleTypes = $this->config->GEBEM->API_CONFIGURATION->moduleTypes;
         $entities = array();
@@ -414,14 +678,14 @@ class EnergyController extends Controller
             array_push($entities, array(
                 "type" => $moduleTypes[$i],
                 "isPattern" => true,
-                "id" => Util::getBestParamValue("patternId", ".*", $configParams, $_GET)
+                "id" => ".*"
             ));
         }
 
-        $attributes = array();
-        if(isset($_GET["attributes"])){
-            $attributes = explode(",", Util::getBestParamValue("attributes", "", $configParams, $_GET));
-        }
+//        $attributes = array();
+//        if(isset($_GET["attributes"])){
+//            $attributes = explode(",", Util::getBestParamValue("attributes", "", $configParams, $_GET));
+//        }
 
         $token = '';
         if($this->config->GEBEM->ORION_CONFIGURATION->isProtected){
@@ -444,41 +708,27 @@ class EnergyController extends Controller
             $token = $resToken->getHeader('X-Subject-Token')[0];
         }
 
-        $q = Util::getBestParamValue("q", "", $configParams, $_GET);
+//        $q = Util::getBestParamValue("q", "", $configParams, $_GET);
 
         try{
             $configAttributes = $this->config->GEBEM->API_CONFIGURATION->attributes_names->toArray();
 
-            if(empty($q)){
-                $load = array(
-                    'entities' => $entities,
-                    'attributes' => $attributes,
-                    'restriction' => [
-                        'scopes' => [[
-                            'type' => "FIWARE::StringQuery",
-                            'value' => Util::getBestParamValue("modules", "Sala", $configAttributes, array())."=='".$id_r."'"
-                        ]]
-                    ]
-                );
-            }else{
-                $load = array(
-                    'entities' => $entities,
-                    'attributes' => $attributes,
-                    'restriction' => [
-                        'scopes' => [[
-                            'type' => "FIWARE::StringQuery",
-                            'value' => $q.";".Util::getBestParamValue("modules", "Sala", $configAttributes, $_GET)."=='".$id_r."'"
-                        ]]
-                    ]
-                );
-            }
+            $load = array(
+                'entities' => $entities,
+                'attributes' => array(),
+                'restriction' => [
+                    'scopes' => [[
+                        'type' => "FIWARE::StringQuery",
+                        'value' => Util::getBestParamValue("modules", "Sala", $configAttributes, array())."=='".$id_r."'"
+                    ]]
+                ]
+            );
 
             $res = $client->post(
                 $this->config->GEBEM->ORION_CONFIGURATION->protocol.'://'
                 .$this->config->GEBEM->ORION_CONFIGURATION->url.':'
                 .$this->config->GEBEM->ORION_CONFIGURATION->port
                 .'/v1/queryContext'
-                .$params
                 , array(
                     'headers' => [
                         'Content-Type' => 'application/json',
