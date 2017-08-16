@@ -305,13 +305,11 @@ class EnergyController extends Controller
         $datef = Util::getBestParamValue("from", (new \DateTime())->modify('-24 hours')->format('Y-m-d H:i:s'), array(), $_GET);
         $datet = Util::getBestParamValue("to", (new \DateTime())->format('Y-m-d H:i:s'), array(), $_GET);
         $energyDB = new EnergyDB();
-        $totalConsumptionP = 0;
 
         $predios_r = array();
         foreach ($predios as $predio){
             $salas_r = array();
             $totalConsumptionP = 0;
-//            echo "predio: ".$predio['id'].'<br>';
             foreach ($rooms as $room){
                 $energyModules = array();
                 $totalConsumption = 0;
@@ -319,11 +317,9 @@ class EnergyController extends Controller
                 $idpredio = "";
                 foreach ($room->contextElement->attributes as $attribute){
                     if(Util::getBestParamValue("rooms", "Sala", $configAttributes, array()) == $attribute->name){
-//                        echo 'valor:'.$attribute->value.'<br>';
                         $idpredio = $attribute->value;
                     }
                 }
-//                echo "predio: ".$predio['id'].'=='.$idpredio.'<br>';
                 if($predio["id"] != $idpredio){
                     continue;
                 }
@@ -402,11 +398,6 @@ class EnergyController extends Controller
 
         $showDetails = Util::getBestParamValue("details", "on", $configParams, $_GET) == "on" ? true : false;
 
-//        $params =   "?offset=".Util::getBestParamValue("offset", "0", $configParams, $_GET)
-//            ."&limit=".Util::getBestParamValue("limit", "100", $configParams, $_GET)
-//            ."&details=".Util::getBestParamValue("details", "off", $configParams, $_GET)
-//            ."&orderBy=".Util::getBestParamValue("orderBy", "", $configParams, $_GET);
-
         $roomTypes = $this->config->GEBEM->API_CONFIGURATION->roomTypes;
         $entities = array();
         for($i = 0;$i < count($roomTypes);$i++){
@@ -442,8 +433,6 @@ class EnergyController extends Controller
 
             $token = $resToken->getHeader('X-Subject-Token')[0];
         }
-
-//        $q = Util::getBestParamValue("q", "", $configParams, $_GET);
 
         try{
             $configAttribute = $this->config->GEBEM->API_CONFIGURATION->attributes_names->toArray();
@@ -613,7 +602,7 @@ class EnergyController extends Controller
                 $tableName = "GEBEM_".$module->contextElement->id;
 
                 if(!$energyDB->checkTableExists($tableName, $this->config->database->dbname)){
-                    $energyDB->createElementTable($module->contextElement->id, $this->config->database->dbname);
+                    $energyDB->createElementTable($module, $this->config->database->dbname);
                 }
 
                 $sumtotal = $energyDB->getModuleEnergySumTotal($module->contextElement->id, $tableName, "Consumption", $datef, $datet);
@@ -988,7 +977,7 @@ class EnergyController extends Controller
                 $tableName = "GEBEM_".$module->contextElement->id;
 
                 if(!$energyDB->checkTableExists($tableName, $this->config->database->dbname)){
-                    $energyDB->createElementTable($module->contextElement->id, $this->config->database->dbname);
+                    $energyDB->createElementTable($module, $this->config->database->dbname);
                 }
 
                 $sumtotal = $energyDB->getModuleEnergySumTotal($module->contextElement->id, $tableName, "Consumption", $datef, $datet);
@@ -1041,11 +1030,6 @@ class EnergyController extends Controller
 
         $showDetails = Util::getBestParamValue("details", "on", $configParams, $_GET) == "on" ? true : false;
 
-//        $params =   "?offset=".Util::getBestParamValue("offset", "0", $configParams, $_GET)
-//            ."&limit=".Util::getBestParamValue("limit", "100", $configParams, $_GET)
-//            ."&details=".Util::getBestParamValue("details", "off", $configParams, $_GET)
-//            ."&orderBy=".Util::getBestParamValue("orderBy", "", $configParams, $_GET);
-
         $moduleTypes = $this->config->GEBEM->API_CONFIGURATION->moduleTypes;
         $entities = array();
         for($i = 0;$i < count($moduleTypes);$i++){
@@ -1055,11 +1039,6 @@ class EnergyController extends Controller
                 "id" => ".*"
             ));
         }
-
-//        $attributes = array();
-//        if(isset($_GET["attributes"])){
-//            $attributes = explode(",", Util::getBestParamValue("attributes", "", $configParams, $_GET));
-//        }
 
         $token = '';
         if($this->config->GEBEM->ORION_CONFIGURATION->isProtected){
@@ -1081,8 +1060,6 @@ class EnergyController extends Controller
 
             $token = $resToken->getHeader('X-Subject-Token')[0];
         }
-
-//        $q = Util::getBestParamValue("q", "", $configParams, $_GET);
 
         try{
             $configAttributes = $this->config->GEBEM->API_CONFIGURATION->attributes_names->toArray();
@@ -1155,7 +1132,7 @@ class EnergyController extends Controller
             $tableName = "GEBEM_".$module->contextElement->id;
 
             if(!$energyDB->checkTableExists($tableName, $this->config->database->dbname)){
-                $energyDB->createElementTable($module->contextElement->id, $this->config->database->dbname);
+                $energyDB->createElementTable($module, $this->config->database->dbname);
             }
 
             $sumtotal = $energyDB->getModuleEnergySumTotal($module->contextElement->id, $tableName, "Consumption", $datef, $datet);
@@ -1324,7 +1301,7 @@ class EnergyController extends Controller
             $tableName = "GEBEM_".$module->contextElement->id;
 
             if(!$energyDB->checkTableExists($tableName, $this->config->database->dbname)){
-                $energyDB->createElementTable($module->contextElement->id, $this->config->database->dbname);
+                $energyDB->createElementTable($module, $this->config->database->dbname);
             }
 
             $sumtotal = $energyDB->getModuleEnergySumTotal($module->contextElement->id, $tableName, "Consumption", $datef, $datet);
@@ -1492,7 +1469,7 @@ class EnergyController extends Controller
             $tableName = "GEBEM_".$module->contextElement->id;
 
             if(!$energyDB->checkTableExists($tableName, $this->config->database->dbname)){
-                $energyDB->createElementTable($module->contextElement->id, $this->config->database->dbname);
+                $energyDB->createElementTable($module, $this->config->database->dbname);
             }
 
             $sumtotal = $energyDB->getModuleEnergySumTotal($module->contextElement->id, $tableName, "Consumption", $datef, $datet);
