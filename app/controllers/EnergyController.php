@@ -366,6 +366,7 @@ class EnergyController extends Controller
                 }
 
                 $totalConsumptionP += $totalConsumption;
+                $sala['id'] = $room->contextElement->id;
                 $sala['total_consumption'] = $totalConsumption;
                 $sala['modules'] = $energyModules;
 
