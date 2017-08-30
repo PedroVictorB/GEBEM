@@ -56,6 +56,25 @@ class NotificationDB implements NotificationDBInteface
     }
 
     /**
+     * @param $tableName
+     * @param $attrn
+     *
+     * The last element with the attribute name by date
+     *
+     * Returns a float with all the data
+     *
+     * @return object
+     *
+     */
+    public function getLastAttr($tableName, $attrn){
+        $result =  $this->db->query(
+            "SELECT * FROM $tableName WHERE attr_name = \"$attrn\" ORDER BY value_date DESC LIMIT 1;"
+        )->fetchAll();
+
+        return $result;
+    }
+
+    /**
      * @param $entity
      * @param $dbname
      * @return mixed
