@@ -28,7 +28,7 @@ class BuildingsController extends Controller
         $params =   "?offset=".Util::getBestParamValue("offset", "0", $configParams, $_GET)
             ."&limit=".Util::getBestParamValue("limit", "100", $configParams, $_GET)
             ."&details=".Util::getBestParamValue("details", "off", $configParams, $_GET)
-            ."&orderBy=".Util::getBestParamValue("orderBy", "", $configParams, $_GET);
+            ."&orderBy=".Util::getBestParamValue("orderBy", "foo", $configParams, $_GET);
 
         $buildingsTypes = $this->config->GEBEM->API_CONFIGURATION->buildingTypes;
         $entities = array();
@@ -190,7 +190,7 @@ class BuildingsController extends Controller
         $params =   "?offset=".Util::getBestParamValue("offset", "0", $configParams, $_GET)
             ."&limit=".Util::getBestParamValue("limit", "100", $configParams, $_GET)
             ."&details=".Util::getBestParamValue("details", "off", $configParams, $_GET)
-            ."&orderBy=".Util::getBestParamValue("orderBy", "", $configParams, $_GET);
+            ."&orderBy=".Util::getBestParamValue("orderBy", "foo", $configParams, $_GET);
 
         $buildingsTypes = $this->config->GEBEM->API_CONFIGURATION->buildingTypes;
         $entities = array();
@@ -351,7 +351,7 @@ class BuildingsController extends Controller
         $params =   "?offset=".Util::getBestParamValue("offset", "0", $configParams, $_GET)
             ."&limit=".Util::getBestParamValue("limit", "100", $configParams, $_GET)
             ."&details=".Util::getBestParamValue("details", "off", $configParams, $_GET)
-            ."&orderBy=".Util::getBestParamValue("orderBy", "", $configParams, $_GET);
+            ."&orderBy=".Util::getBestParamValue("orderBy", "foo", $configParams, $_GET);
 
         $roomTypes = $this->config->GEBEM->API_CONFIGURATION->roomTypes;
         $entities = array();
@@ -519,7 +519,7 @@ class BuildingsController extends Controller
         $params =   "?offset=".Util::getBestParamValue("offset", "0", $configParams, $_GET)
             ."&limit=".Util::getBestParamValue("limit", "100", $configParams, $_GET)
             ."&details=".Util::getBestParamValue("details", "off", $configParams, $_GET)
-            ."&orderBy=".Util::getBestParamValue("orderBy", "", $configParams, $_GET);
+            ."&orderBy=".Util::getBestParamValue("orderBy", "foo", $configParams, $_GET);
 
         $roomTypes = $this->config->GEBEM->API_CONFIGURATION->roomTypes;
         $entities = array();
@@ -769,7 +769,7 @@ class BuildingsController extends Controller
         $params =   "?offset=".Util::getBestParamValue("offset", "0", $configParams, $_GET)
             ."&limit=".Util::getBestParamValue("limit", "100", $configParams, $_GET)
             ."&details=".Util::getBestParamValue("details", "off", $configParams, $_GET)
-            ."&orderBy=".Util::getBestParamValue("orderBy", "", $configParams, $_GET);
+            ."&orderBy=".Util::getBestParamValue("orderBy", "foo", $configParams, $_GET);
 
         $roomTypes = $this->config->GEBEM->API_CONFIGURATION->roomTypes;
         $entities = array();

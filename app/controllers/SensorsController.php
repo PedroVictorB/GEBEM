@@ -27,7 +27,7 @@ class SensorsController extends Controller
         $params =   "?offset=".Util::getBestParamValue("offset", "0", $configParams, $_GET)
             ."&limit=".Util::getBestParamValue("limit", "100", $configParams, $_GET)
             ."&details=".Util::getBestParamValue("details", "off", $configParams, $_GET)
-            ."&orderBy=".Util::getBestParamValue("orderBy", "", $configParams, $_GET);
+            ."&orderBy=".Util::getBestParamValue("orderBy", "foo", $configParams, $_GET);
 
         $sensorTypes = $this->config->GEBEM->API_CONFIGURATION->sensorTypes;
         $entities = array();
@@ -189,7 +189,7 @@ class SensorsController extends Controller
         $params =   "?offset=".Util::getBestParamValue("offset", "0", $configParams, $_GET)
             ."&limit=".Util::getBestParamValue("limit", "100", $configParams, $_GET)
             ."&details=".Util::getBestParamValue("details", "off", $configParams, $_GET)
-            ."&orderBy=".Util::getBestParamValue("orderBy", "", $configParams, $_GET);
+            ."&orderBy=".Util::getBestParamValue("orderBy", "foo", $configParams, $_GET);
 
         $sensorTypes = $this->config->GEBEM->API_CONFIGURATION->sensorTypes;
         $entities = array();
