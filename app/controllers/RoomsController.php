@@ -17,6 +17,7 @@ use GuzzleHttp\Exception\RequestException as GuzzleRequestException;
 class RoomsController extends Controller
 {
     public function getRooms(){
+        header('Content-Type: application/json');
         $client = new GuzzleClient();
 
         $configParams = $this->config->GEBEM->API_CONFIGURATION->params->toArray();
@@ -178,6 +179,7 @@ class RoomsController extends Controller
     }
 
     public function getOneRoom($id_r){
+        header('Content-Type: application/json');
         $client = new GuzzleClient();
 
         $configParams = $this->config->GEBEM->API_CONFIGURATION->params->toArray();
@@ -339,6 +341,7 @@ class RoomsController extends Controller
     }
 
     public function getOneRoomSensors($id_r){
+        header('Content-Type: application/json');
         $client = new GuzzleClient();
 
         $configParams = $this->config->GEBEM->API_CONFIGURATION->params->toArray();
@@ -508,6 +511,7 @@ class RoomsController extends Controller
     }
 
     public function getOneRoomModules($id_r){
+        header('Content-Type: application/json');
         $client = new GuzzleClient();
 
         $configParams = $this->config->GEBEM->API_CONFIGURATION->params->toArray();

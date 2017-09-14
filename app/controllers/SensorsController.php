@@ -17,7 +17,7 @@ use GuzzleHttp\Exception\RequestException as GuzzleRequestException;
 class SensorsController extends Controller
 {
     public function getSensors(){
-
+        header('Content-Type: application/json');
         $client = new GuzzleClient();
 
         $configParams = $this->config->GEBEM->API_CONFIGURATION->params->toArray();
@@ -179,7 +179,7 @@ class SensorsController extends Controller
     }
 
     public function getOneSensor($id_s){
-
+        header('Content-Type: application/json');
         $client = new GuzzleClient();
 
         $configParams = $this->config->GEBEM->API_CONFIGURATION->params->toArray();

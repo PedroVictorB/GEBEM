@@ -18,7 +18,7 @@ class BuildingsController extends Controller
 {
     
     public function getBuildings(){
-
+        header('Content-Type: application/json');
         $client = new GuzzleClient();
 
         $configParams = $this->config->GEBEM->API_CONFIGURATION->params->toArray();
@@ -180,7 +180,7 @@ class BuildingsController extends Controller
     }
     
     public function getOneBuilding($id_b){
-
+        header('Content-Type: application/json');
         $client = new GuzzleClient();
 
         $configParams = $this->config->GEBEM->API_CONFIGURATION->params->toArray();
@@ -342,6 +342,7 @@ class BuildingsController extends Controller
     }
     
     public function getOneBuildingRooms($id_b){
+        header('Content-Type: application/json');
         $client = new GuzzleClient();
 
         $configParams = $this->config->GEBEM->API_CONFIGURATION->params->toArray();
@@ -510,6 +511,7 @@ class BuildingsController extends Controller
     }
     
     public function getOneBuildingSensors($id_b){
+        header('Content-Type: application/json');
         $client = new GuzzleClient();
 
         $configParams = $this->config->GEBEM->API_CONFIGURATION->params->toArray();
@@ -760,6 +762,7 @@ class BuildingsController extends Controller
     }
     
     public function getOneBuildingModules($id_b){
+        header('Content-Type: application/json');
         $client = new GuzzleClient();
 
         $configParams = $this->config->GEBEM->API_CONFIGURATION->params->toArray();

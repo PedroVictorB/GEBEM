@@ -17,7 +17,7 @@ class ModulesController extends Controller
 {
     
     public function getModules(){
-
+        header('Content-Type: application/json');
         $client = new GuzzleClient();
 
         $configParams = $this->config->GEBEM->API_CONFIGURATION->params->toArray();
@@ -179,7 +179,7 @@ class ModulesController extends Controller
     }
 
     public function getOneModule($id_m){
-
+        header('Content-Type: application/json');
         $client = new GuzzleClient();
 
         $configParams = $this->config->GEBEM->API_CONFIGURATION->params->toArray();

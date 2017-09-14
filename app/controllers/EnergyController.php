@@ -18,6 +18,7 @@ use Phalcon\Db as Db;
 class EnergyController extends Controller
 {
     public function getBuildings(){
+        header('Content-Type: application/json');
         $client = new GuzzleClient();
 
         $configParams = $this->config->GEBEM->API_CONFIGURATION->params->toArray();
@@ -399,6 +400,7 @@ class EnergyController extends Controller
     }
 
     public function getOneBuilding($id_b){
+        header('Content-Type: application/json');
         $client = new GuzzleClient();
 
         $configParams = $this->config->GEBEM->API_CONFIGURATION->params->toArray();
@@ -666,6 +668,7 @@ class EnergyController extends Controller
     }
 
     public function getRooms(){
+        header('Content-Type: application/json');
         $client = new GuzzleClient();
 
         $configParams = $this->config->GEBEM->API_CONFIGURATION->params->toArray();
@@ -1043,6 +1046,7 @@ class EnergyController extends Controller
     }
 
     public function getOneRoom($id_r){
+        header('Content-Type: application/json');
         $client = new GuzzleClient();
 
         $configParams = $this->config->GEBEM->API_CONFIGURATION->params->toArray();
@@ -1203,6 +1207,7 @@ class EnergyController extends Controller
     }
 
     public function getModules(){
+        header('Content-Type: application/json');
         $client = new GuzzleClient();
 
         $configParams = $this->config->GEBEM->API_CONFIGURATION->params->toArray();
@@ -1377,6 +1382,7 @@ class EnergyController extends Controller
     }
 
     public function getOneModule($id_m){
+        header('Content-Type: application/json');
         $client = new GuzzleClient();
 
         $configParams = $this->config->GEBEM->API_CONFIGURATION->params->toArray();
