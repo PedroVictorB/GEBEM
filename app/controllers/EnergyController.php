@@ -1389,7 +1389,7 @@ class EnergyController extends Controller
 
         $showDetails = Util::getBestParamValue("details", "on", $configParams, $_GET) == "on" ? true : false;
 
-        $params =   "?offset=".Util::getBestParamValue("from", "0", $configParams, $_GET)
+        $params =   "?offset=".Util::getBestParamValue("offset", "0", $configParams, $_GET)
             ."&limit=".Util::getBestParamValue("limit", "100", $configParams, $_GET)
             ."&details=".Util::getBestParamValue("details", "off", $configParams, $_GET)
             ."&orderBy=".Util::getBestParamValue("orderBy", "foo", $configParams, $_GET);
