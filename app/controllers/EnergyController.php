@@ -1495,6 +1495,13 @@ class EnergyController extends Controller
         $modules = json_decode($res->getBody())->contextResponses;
 
         date_default_timezone_set('America/Recife');
+        if(isset($_GET['from'])){
+            $_GET['from'] = date("Y-m-d H:i:s", strtotime(str_replace('/', '-', $_GET['from'])));
+        }
+        if(isset($_GET['to'])){
+            $_GET['to'] = date("Y-m-d H:i:s", strtotime(str_replace('/', '-', $_GET['to'])));
+        }
+
         $energyModules = array();
         $datef = Util::getBestParamValue("from", (new \DateTime())->modify('-24 hours')->format('Y-m-d H:i:s'), array(), $_GET);
         $datet = Util::getBestParamValue("to", (new \DateTime())->format('Y-m-d H:i:s'), array(), $_GET);
