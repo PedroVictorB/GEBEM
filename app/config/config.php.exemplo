@@ -61,6 +61,12 @@ return new \Phalcon\Config([
                 "rooms"       => 'Predio',
                 "sensors"     => 'Sala',
                 "modules"     => 'Sala'
+            ],
+            'energy_config' => [
+                'on_off'     => 'Status',
+                'on_value'   => 'ON',
+                'off_value'  => 'OFF',
+                'potency'    => 'Potencia'
             ]
         ],
         'ORION_CONFIGURATION' => [
